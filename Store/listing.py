@@ -105,6 +105,21 @@ def age_rating():
     print("  age rating declared (4+)" if result is not None else "  age rating failed")
 
 
+def _review_notes() -> str:
+    path = Path(__file__).resolve().parent / "review-notes.md"
+    if not path.exists():
+        return "No account or login is required. Tap PLAY to start."
+    text = path.read_text(encoding="utf-8")
+    # Everything after the --- divider is the note itself; the header above it
+    # is for whoever opens the file.
+    lines = text.splitlines()
+    for i, line in enumerate(lines):
+        if line.strip() == "---":
+            text = os.linesep.join(lines[i + 1:])
+            break
+    return text.strip()
+
+
 def review_details():
     """Reviewer contact details, and a note saying how to drive the app."""
     app = find_app()
@@ -122,16 +137,11 @@ def review_details():
         # No account, so nothing to sign in with. Saying so outright saves a
         # round trip with a reviewer asking for test credentials.
         "demoAccountRequired": False,
-        "notes": (
-            "No account or login is required.\n\n"
-            "Tap Choose Photo or Choose Video and pick any item. The picture is "
-            "rebuilt out of text characters that have weight and move. Use the "
-            "three Style buttons and the two sliders to change the effect, then "
-            "tap Export to render it and open the share sheet.\n\n"
-            "The app requests no permissions. It uses the system photo picker, "
-            "so it receives only the single item you select. All processing is "
-            "on device, nothing is uploaded, and no data is collected."
-        ),
+        # Read from Store/review-notes.md rather than duplicated here, so the
+        # file a human reads and the text Apple receives cannot drift apart.
+        # This is the most important field on this particular submission: it is
+        # where the satire is explained.
+        "notes": _review_notes(),
     }
     phone = os.environ.get("ASC_CONTACT_PHONE", "").strip()
     if phone:
@@ -175,6 +185,8 @@ def review_details():
 
 
 # Apple's display type for each accepted screenshot size, both orientations.
+PRICE = "1.99"
+
 DISPLAY_BY_SIZE = {
     (1320, 2868): "APP_IPHONE_67",
     (2868, 1320): "APP_IPHONE_67",
@@ -413,11 +425,18 @@ def categories():
                 "type": "appInfos",
                 "id": info_id,
                 "relationships": {
+                    # Games carry subcategories as well as a category, and the
+                    # store surfaces the subcategory in browse. Casual first
+                    # because that is who this is for; Action second because of
+                    # the timing.
                     "primaryCategory": {
-                        "data": {"type": "appCategories", "id": "PHOTO_AND_VIDEO"}
+                        "data": {"type": "appCategories", "id": "GAMES"}
                     },
-                    "secondaryCategory": {
-                        "data": {"type": "appCategories", "id": "GRAPHICS_AND_DESIGN"}
+                    "primarySubcategoryOne": {
+                        "data": {"type": "appCategories", "id": "GAMES_CASUAL"}
+                    },
+                    "primarySubcategoryTwo": {
+                        "data": {"type": "appCategories", "id": "GAMES_ACTION"}
                     },
                 },
             }
@@ -437,12 +456,80 @@ def finish():
     print("categories:")
     categories()
     print("price:")
-    price()
+    price(PRICE)
     print()
     status()
 
 
+def leaderboards():
+    """Create the two Game Center leaderboards the game submits to.
+
+    IDs must match GameCenter.swift. Both are integer boards: the clear time is
+    submitted in hundredths of a second so a "fastest" board sorts ascending
+    with useful precision, and the launch is plain metres sorted descending.
+    """
+    app = find_app()
+    if not app:
+        sys.exit("no app record yet")
+
+    detail = call("GET", f"/v1/apps/{app['id']}/gameCenterDetail", quiet=True)
+    if not detail or not detail.get("data"):
+        made = call("POST", "/v1/gameCenterDetails", {"data": {
+            "type": "gameCenterDetails",
+            "relationships": {"app": {"data": {"type": "apps", "id": app["id"]}}}}})
+        if not made:
+            print("  could not enable Game Center on the app")
+            return
+        detail_id = made["data"]["id"]
+        print("  Game Center enabled on the app")
+    else:
+        detail_id = detail["data"]["id"]
+        print("  Game Center already enabled")
+
+    boards = [
+        ("clearthestrait.fastest", "Fastest Clear", "ASC", "INTEGER"),
+        ("clearthestrait.longest", "Longest Launch", "DESC", "INTEGER"),
+    ]
+
+    existing = call("GET", f"/v1/gameCenterDetails/{detail_id}/gameCenterLeaderboards",
+                    params={"limit": 50}, quiet=True)
+    have = {d["attributes"].get("referenceName"): d["id"]
+            for d in (existing or {}).get("data", [])}
+
+    for vendor, name, sort, fmt in boards:
+        if name in have:
+            print(f"  {name}: already exists")
+            continue
+        made = call("POST", "/v1/gameCenterLeaderboards", {"data": {
+            "type": "gameCenterLeaderboards",
+            "attributes": {
+                "referenceName": name,
+                "vendorIdentifier": vendor,
+                "submissionType": "BEST_SCORE",
+                "scoreSortType": sort,
+                "defaultFormatter": fmt,
+                "recurrenceStartDate": None,
+            },
+            "relationships": {"gameCenterDetail": {"data": {
+                "type": "gameCenterDetails", "id": detail_id}}}}})
+        if not made:
+            print(f"  {name}: failed")
+            continue
+        board_id = made["data"]["id"]
+        print(f"  {name}: created ({vendor})")
+
+        # A board with no localisation is invisible, and Apple rejects a
+        # submission that references one.
+        loc = call("POST", "/v1/gameCenterLeaderboardLocalizations", {"data": {
+            "type": "gameCenterLeaderboardLocalizations",
+            "attributes": {"locale": PRIMARY_LOCALE, "name": name},
+            "relationships": {"gameCenterLeaderboard": {"data": {
+                "type": "gameCenterLeaderboards", "id": board_id}}}}})
+        print(f"    localization: {'ok' if loc is not None else 'failed'}")
+
+
 COMMANDS = {
+    "leaderboards": leaderboards,
     "age-rating": age_rating,
     "review-details": review_details,
     "screenshots": screenshots,

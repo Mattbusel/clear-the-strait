@@ -164,12 +164,12 @@ struct BlockerMark: View {
                 // Shirt and tie
                 Capsule()
                     .fill(UI.foam)
-                    .frame(width: s * 0.26, height: s * 0.46)
-                    .offset(y: s * 0.14)
+                    .frame(width: s * 0.24, height: s * 0.38)
+                    .offset(y: s * 0.26)
                 Capsule()
                     .fill(Color(red: 0.88, green: 0.16, blue: 0.22))
-                    .frame(width: s * 0.10, height: s * 0.44)
-                    .offset(y: s * 0.18)
+                    .frame(width: s * 0.09, height: s * 0.36)
+                    .offset(y: s * 0.30)
 
                 // Eyes
                 HStack(spacing: s * 0.20) {
@@ -183,10 +183,11 @@ struct BlockerMark: View {
                 .offset(y: -s * 0.10)
 
                 // Mouth
+                // Clear of the collar. Overlapping it read as a nose.
                 Ellipse()
                     .fill(Color(red: 0.62, green: 0.20, blue: 0.26))
-                    .frame(width: s * 0.20, height: s * 0.09)
-                    .offset(y: s * 0.05)
+                    .frame(width: s * 0.18, height: s * 0.10)
+                    .offset(y: s * 0.06)
             }
         }
     }
@@ -273,23 +274,47 @@ struct ResultView: View {
     }
 }
 
-/// Hosts the SpriteKit scene.
-struct GameHost: UIViewRepresentable {
-    var onFinished: (RoundResult) -> Void
+/// Holds the scene across SwiftUI body evaluations.
+///
+/// Without this the scene is rebuilt every time the view updates, which resets
+/// the round on the first tap.
+final class SceneHolder: ObservableObject {
+    private var scene: GameScene?
 
-    func makeUIView(context: Context) -> SKView {
-        let view = SKView()
-        view.ignoresSiblingOrder = true
-        view.isMultipleTouchEnabled = false
-        return view
+    func scene(size: CGSize, onFinished: @escaping (RoundResult) -> Void) -> GameScene {
+        if let scene, abs(scene.size.width - size.width) < 1 {
+            return scene
+        }
+        let made = GameScene(size: size)
+        made.scaleMode = .resizeFill
+        made.onFinished = onFinished
+        scene = made
+        return made
     }
+}
 
-    func updateUIView(_ view: SKView, context: Context) {
-        guard view.scene == nil, view.bounds.width > 1 else { return }
-        let scene = GameScene(size: view.bounds.size)
-        scene.scaleMode = .resizeFill
-        scene.onFinished = onFinished
-        view.presentScene(scene)
+/// Hosts the SpriteKit scene.
+///
+/// SpriteView rather than a UIViewRepresentable wrapping SKView.
+///
+/// The wrapper version presented its scene from `updateUIView`, guarded on the
+/// view having a non-zero width. SwiftUI creates the view at zero size and does
+/// not reliably call that again after layout, so the guard never passed, no
+/// scene was ever presented, and the whole game screen rendered as SKView's
+/// default grey. SpriteView is given a size by GeometryReader and handles the
+/// presentation itself.
+struct GameHost: View {
+    var onFinished: (RoundResult) -> Void
+    @StateObject private var holder = SceneHolder()
+
+    var body: some View {
+        GeometryReader { geo in
+            SpriteView(
+                scene: holder.scene(size: geo.size, onFinished: onFinished),
+                options: [.ignoresSiblingOrder]
+            )
+            .ignoresSafeArea()
+        }
     }
 }
 
