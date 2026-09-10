@@ -1,0 +1,9 @@
+# One device. Since 2026 the store scales a single iPhone set down for every
+# smaller size, and this app is iPhone only.
+devices(["iPhone 17 Pro Max"])
+languages(["en-US"])
+scheme("ClearTheStrait")
+output_directory("./fastlane/screenshots")
+clear_previous_screenshots(true)
+override_status_bar(true)
+concurrent_simulators(true)

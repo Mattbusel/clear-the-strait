@@ -1,0 +1,18 @@
+*.xcodeproj/
+*.xcworkspace/
+build/
+DerivedData/
+.DS_Store
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/test_output/
+fastlane/README.md
+Tests/ScreenshotTests/SnapshotHelper.swift
+# Never. These are the account.
+*.p8
+AuthKey_*
+*.p12
+*.mobileprovision
+*.cer
+Store/private/
+.env

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+	  Clear the Strait privacy manifest.
+
+	  The game has no network layer at all: no analytics, no crash reporter, no
+	  ads, no accounts, no server. The only data that exists is two personal
+	  best numbers in UserDefaults, on the device.
+
+	  Game Center is optional and handled entirely by Apple's own framework. If
+	  the player signs in, their scores go to Apple, not to us; if they decline,
+	  the game is identical.
+
+	  NSPrivacyAccessedAPICategoryUserDefaults is declared because Scores reads
+	  and writes UserDefaults. CA92.1 is the reason code for an app accessing
+	  its own defaults, which is exactly what this is. Omitting it fails the
+	  upload before a human ever sees the build.
+	-->
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>CA92.1</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>
