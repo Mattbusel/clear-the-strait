@@ -71,6 +71,27 @@ jobs:
           if [ -z "$src" ]; then echo "SnapshotHelper.swift not found"; exit 1; fi
           cp "$src" Tests/ScreenshotTests/SnapshotHelper.swift
 
+      - name: Pick an available simulator
+        run: |
+          # Not hardcoded. The runner image does not always carry the same
+          # simulators, and a device name that worked on six runs failed on the
+          # seventh with "Unable to find a device matching the provided
+          # destination specifier", which reads like a project problem rather
+          # than a fleet one. Newest available iPhone wins.
+          name=$(xcrun simctl list devices available \
+                 | grep -oE "iPhone [0-9]+ Pro Max" | sort -Vr | head -1)
+          if [ -z "$name" ]; then
+            name=$(xcrun simctl list devices available \
+                   | grep -oE "iPhone [0-9]+ Pro" | sort -Vr | head -1)
+          fi
+          if [ -z "$name" ]; then
+            echo "no iPhone simulator on this runner:"
+            xcrun simctl list devices available
+            exit 1
+          fi
+          echo "using simulator: $name"
+          echo "SIM_NAME=$name" >> "$GITHUB_ENV"
+
       - name: Generate the Xcode project
         run: xcodegen generate
 
@@ -84,14 +105,14 @@ jobs:
           xcodebuild test \
             -project ClearTheStrait.xcodeproj \
             -scheme ClearTheStrait \
-            -destination 'platform=iOS Simulator,name=iPhone 17 Pro Max' \
+            -destination "platform=iOS Simulator,name=$SIM_NAME" \
             -only-testing:ClearTheStraitTests \
             CODE_SIGNING_ALLOWED=NO \
             | xcpretty
 
       - name: Capture screenshots
         if: ${{ inputs.action == 'screenshots' }}
-        run: fastlane screenshots
+        run: fastlane screenshots --devices "$SIM_NAME"
 
       - name: Upload screenshots as an artifact
         if: ${{ always() && inputs.action == 'screenshots' }}
