@@ -87,5 +87,4 @@ final class ScreenshotTests: XCTestCase {
         sleep(4)
         snapshot("06_Result")
     }
-    }
 }
