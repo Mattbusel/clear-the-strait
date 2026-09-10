@@ -51,7 +51,7 @@ final class Channel: SKNode {
         // A fraction of the screen with no low cap. Capped at 190 points this
         // was a thin band across a tall phone with most of the screen given
         // over to empty land.
-        halfGap = size.height * 0.27
+        halfGap = size.height * 0.32
 
         let water = SKSpriteNode(color: Palette.water, size: size)
         water.position = CGPoint(x: size.width / 2, y: size.height / 2)

@@ -333,6 +333,16 @@ final class Blocker: SKNode {
         art.xScale = (1 + speedSquash + bounce) * (radius / Blocker.baseRadius)
         art.yScale = (1 - speedSquash - bounce) * (radius / Blocker.baseRadius)
 
+        // Counter-rotate, so the face stays the right way up while the body
+        // rolls underneath it.
+        //
+        // A physics body this shape has to be allowed to rotate or it slides
+        // instead of rolling, but a chibi face tumbling through 360 degrees
+        // reads as a ragdoll being thrown rather than as a character. Every
+        // cute mobile game does this: the motion is carried by squash, the
+        // trailing limbs and the swinging tie, not by spinning the eyes.
+        art.zRotation = -zRotation
+
         // The limbs lag, which is most of what sells him as soft.
         let lag = -pb.velocity.dx / 5200
         leftArm.zRotation = 0.5 + lag

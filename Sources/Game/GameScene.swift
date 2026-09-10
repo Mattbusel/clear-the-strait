@@ -301,14 +301,19 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         guard now >= nextBubble else { return }
         nextBubble = now + phase.bubbleInterval * Double.random(in: 0.8...1.2)
 
+        // Spawned at the edge of him and thrown clear, not from his middle.
+        // Starting at 0.6 of the radius put the balloon on top of his face for
+        // the first second of its life, which is the one second the player most
+        // needs to see his expression.
         let up = Bool.random()
-        let drift = CGVector(dx: CGFloat.random(in: -150...150),
-                             dy: up ? CGFloat.random(in: 120...200) : CGFloat.random(in: -200 ... -120))
-        let bubble = Bubble(
-            text: Quotes.random(),
-            from: CGPoint(x: blocker.position.x, y: blocker.position.y + blocker.radius * 0.6),
-            drift: drift
+        let side: CGFloat = Bool.random() ? -1 : 1
+        let start = CGPoint(
+            x: blocker.position.x + side * blocker.radius * 0.7,
+            y: blocker.position.y + (up ? 1 : -1) * (blocker.radius + 26)
         )
+        let drift = CGVector(dx: side * CGFloat.random(in: 60...170),
+                             dy: up ? CGFloat.random(in: 130...210) : CGFloat.random(in: -210 ... -130))
+        let bubble = Bubble(text: Quotes.random(), from: start, drift: drift)
         bubble.homeProvider = { [weak self] in self?.blocker.position ?? .zero }
         bubble.onLanded = { [weak self] in
             guard let self else { return }
