@@ -114,6 +114,41 @@ jobs:
         if: ${{ inputs.action == 'screenshots' }}
         run: fastlane screenshots
 
+      # A video of a real round, which the stills cannot show: the rocking, the
+      # combo landing, a bubble turning around and coming back, the launch.
+      # Also the raw material for an App Store preview video.
+      - name: Record a round
+        if: ${{ inputs.action == 'screenshots' }}
+        run: |
+          set -o pipefail
+          udid=$(xcrun simctl list devices available                  | grep "$SIM_NAME (" | head -1 | grep -oE "[0-9A-F-]{36}")
+          if [ -z "$udid" ]; then echo "no udid for $SIM_NAME"; exit 0; fi
+          echo "recording on $udid"
+          xcrun simctl boot "$udid" 2>/dev/null || true
+          xcrun simctl bootstatus "$udid" -b || true
+
+          mkdir -p capture
+          xcrun simctl io "$udid" recordVideo --codec h264 --force capture/round.mp4 &
+          rec=$!
+          sleep 2
+
+          # Drive a round through the UI test, with the fast launch so the
+          # payoff is actually in the footage.
+          xcodebuild test             -project ClearTheStrait.xcodeproj             -scheme ClearTheStrait             -destination "id=$udid"             -only-testing:ClearTheStraitUITests/ScreenshotTests/testCaptureLaunch             CODE_SIGNING_ALLOWED=NO | xcpretty || true
+
+          sleep 1
+          kill -INT $rec 2>/dev/null || true
+          wait $rec 2>/dev/null || true
+          ls -la capture/
+
+      - name: Upload the video
+        if: ${{ always() && inputs.action == 'screenshots' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: video
+          path: capture/*.mp4
+          if-no-files-found: warn
+
       - name: Upload screenshots as an artifact
         if: ${{ always() && inputs.action == 'screenshots' }}
         uses: actions/upload-artifact@v4
