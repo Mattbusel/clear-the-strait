@@ -89,6 +89,10 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.mattbusel.clearthestrait.tests
+        # Names the host app. A dependency alone does not wire TEST_HOST, and
+        # without it the build fails with "Could not find test host", which
+        # sounds like a missing target rather than a missing setting.
+        TEST_TARGET_NAME: ClearTheStrait
         # A test bundle is signed too, and signing needs a plist. Without this
         # every test run dies with "Cannot code sign because the target does not
         # have an Info.plist file" while the app itself compiles perfectly.
