@@ -1,4 +1,3 @@
-import GameKit
 import SpriteKit
 import SwiftUI
 
@@ -65,7 +64,6 @@ struct RootView: View {
             case .playing:
                 GameHost { result in
                     Scores.record(result)
-                    GameCenter.submit(result)
                     withAnimation(.easeOut(duration: 0.3)) {
                         screen = .result(result)
                     }
@@ -83,11 +81,6 @@ struct RootView: View {
             }
         }
         .statusBarHidden()
-        .onAppear {
-            GameCenter.authenticate { controller in
-                UIApplication.shared.topViewController?.present(controller, animated: true)
-            }
-        }
     }
 }
 

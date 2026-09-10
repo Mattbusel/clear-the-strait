@@ -55,14 +55,15 @@ targets:
         # layout surface for a game nobody is going to play on a tablet.
         TARGETED_DEVICE_FAMILY: "1"
         SUPPORTS_MACCATALYST: NO
-        # Game Center. Also requires the capability to be enabled on the App ID,
-        # which Store/gamecenter.md covers.
-        INFOPLIST_KEY_UIRequiredDeviceCapabilities: gamekit
 
-    entitlements:
-      path: Resources/ClearTheStrait.entitlements
-      properties:
-        com.apple.developer.game-center: true
+    # No entitlements file in v1.
+    #
+    # The Game Center entitlement creates a gameCenterDetail on the app, and an
+    # app with Game Center config that has never been published cannot have its
+    # version added to a review submission. The API reports only "not in valid
+    # state" and will not say which resource. The app that shipped an hour ago
+    # from this same account differs from this one in exactly one way: it has no
+    # Game Center. Leaderboards return in 1.1, published properly first.
 
     info:
       path: Resources/Info.plist
