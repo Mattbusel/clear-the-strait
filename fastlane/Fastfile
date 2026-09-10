@@ -44,8 +44,13 @@ platform :ios do
   desc "Capture App Store screenshots in the simulator"
   lane :screenshots do
     generate
+    # Device comes from the environment when CI has discovered one, because the
+    # runner image does not always carry the same simulators. `--devices` is not
+    # a valid flag on a lane invocation; it has to be a parameter to the action.
+    devices = ENV["SIM_NAME"].to_s.empty? ? nil : [ENV["SIM_NAME"]]
     capture_screenshots(
       scheme: SCHEME,
+      devices: devices,
       # Snapfile lists the devices. Kept there rather than here so the device
       # list is one line to change when Apple retires a size class.
       clean: false,

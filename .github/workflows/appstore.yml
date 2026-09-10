@@ -112,7 +112,7 @@ jobs:
 
       - name: Capture screenshots
         if: ${{ inputs.action == 'screenshots' }}
-        run: fastlane screenshots --devices "$SIM_NAME"
+        run: fastlane screenshots
 
       - name: Upload screenshots as an artifact
         if: ${{ always() && inputs.action == 'screenshots' }}
