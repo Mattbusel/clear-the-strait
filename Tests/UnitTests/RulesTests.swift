@@ -208,6 +208,38 @@ final class RulesTests: XCTestCase {
         XCTAssertGreaterThan(Escape.threshold(ego: ego), easy * 1.3)
     }
 
+    func testEscapeTakesSustainedRhythmNotAFewShoves() {
+        // The bug this pins. With the threshold at 420 a round ended in four
+        // seconds: two ordinary shoves cleared it, before a single speech
+        // bubble had appeared. A round is meant to run 45 to 120 seconds.
+        let ego = Ego()
+        let bar = Escape.threshold(ego: ego)
+
+        // A burst of mashing: five shoves, no combo to speak of.
+        var mash = Combo()
+        var mashMomentum = 0.0
+        for _ in 0..<5 {
+            mash.register(.good)
+            mashMomentum += Escape.shoveMomentum(tier: .good, streak: mash.streakBonus)
+        }
+        XCTAssertLessThan(
+            mashMomentum, bar,
+            "a five shove burst should not clear the wedge"
+        )
+
+        // A sustained, well-timed run should get there.
+        var rhythm = Combo()
+        var rhythmMomentum = 0.0
+        for _ in 0..<12 {
+            rhythm.register(.perfect)
+            rhythmMomentum += Escape.shoveMomentum(tier: .perfect, streak: rhythm.streakBonus)
+        }
+        XCTAssertGreaterThan(
+            rhythmMomentum, bar,
+            "a dozen perfect shoves should launch him, or the game is unwinnable"
+        )
+    }
+
     // MARK: - Safety
 
     func testNothingProducesANaN() {

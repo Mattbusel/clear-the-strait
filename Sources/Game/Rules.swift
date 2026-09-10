@@ -271,8 +271,26 @@ enum Escape {
     ///
     /// Scales with mass rather than radius, so the counterplay is legible: pop
     /// bubbles and the bar you have to clear visibly drops.
+    ///
+    /// The number is large because momentum is mass times speed and he is
+    /// heavy. At 420 a round ended in four seconds off two ordinary shoves,
+    /// which is not a game. It has to sit above what a burst of mashing can
+    /// reach and below what a sustained rhythm can, so the only way out is to
+    /// drive the wedge at its resonance for a while. See
+    /// `escapeTakesSustainedRhythmNotAFewShoves`.
+    static let baseThreshold: Double = 2200
+
     static func threshold(ego: Ego) -> Double {
-        420 * ego.massScale
+        baseThreshold * ego.massScale
+    }
+
+    /// Roughly the momentum one shove adds, for balance tests to reason with.
+    ///
+    /// Impulse over mass is the speed change; times mass again is the momentum,
+    /// so this is just the impulse. Kept here so the test and the scene cannot
+    /// disagree about what a shove is worth.
+    static func shoveMomentum(tier: ComboTier, streak: Double) -> Double {
+        240 * tier.impulseScale * streak
     }
 
     static func isFreed(momentum: Double, ego: Ego) -> Bool {
