@@ -41,7 +41,10 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.mattbusel.clearthestrait
-        PRODUCT_NAME: Clear the Strait
+        # No spaces. The user-visible name comes from CFBundleDisplayName;
+        # PRODUCT_NAME is a path component, and a space in it breaks the default
+        # TEST_HOST expansion with "Could not find test host".
+        PRODUCT_NAME: ClearTheStrait
         INFOPLIST_KEY_CFBundleDisplayName: Clear the Strait
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         # Portrait only. The channel runs across the short edge and the whole
@@ -92,7 +95,11 @@ targets:
         # Names the host app. A dependency alone does not wire TEST_HOST, and
         # without it the build fails with "Could not find test host", which
         # sounds like a missing target rather than a missing setting.
-        TEST_TARGET_NAME: ClearTheStrait
+        # Spelled out rather than left to inference: a dependency alone does
+        # not wire TEST_HOST, and neither does TEST_TARGET_NAME on a unit test
+        # bundle.
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/ClearTheStrait.app/ClearTheStrait"
+        BUNDLE_LOADER: "$(TEST_HOST)"
         # A test bundle is signed too, and signing needs a plist. Without this
         # every test run dies with "Cannot code sign because the target does not
         # have an Info.plist file" while the app itself compiles perfectly.
