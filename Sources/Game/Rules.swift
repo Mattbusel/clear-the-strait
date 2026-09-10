@@ -155,6 +155,12 @@ struct Ego {
     private(set) var peak: Double = 100
 
     static let minimum: Double = 55
+    /// The ceiling.
+    ///
+    /// At 400 he inflated past the channel and overflowed onto the land, where
+    /// the shores squeezed him sideways out of the pinch. 250 keeps him
+    /// absurdly round while still fitting the water he is stuck in.
+    static let maximum: Double = 250
     /// Where TREMENDOUS MODE takes over.
     static let tremendousThreshold: Double = 185
 
@@ -166,7 +172,7 @@ struct Ego {
     var isTremendous: Bool { percent >= Ego.tremendousThreshold }
 
     mutating func absorb() {
-        percent = min(percent + Ego.bubbleGain, 400)
+        percent = min(percent + Ego.bubbleGain, Ego.maximum)
         peak = max(peak, percent)
     }
 
@@ -176,7 +182,7 @@ struct Ego {
 
     /// Slow drift back up, so ignoring bubbles entirely is not a strategy.
     mutating func tick(seconds: Double, phase: Phase) {
-        percent = min(percent + phase.egoDrift * seconds, 400)
+        percent = min(percent + phase.egoDrift * seconds, Ego.maximum)
         peak = max(peak, percent)
     }
 
@@ -185,7 +191,9 @@ struct Ego {
     /// Deliberately sub-linear. Ego doubling should read as visibly rounder
     /// without him filling the entire channel and hiding the ships.
     var radiusScale: Double {
-        pow(percent / 100, 0.42)
+        // Gentler than it was. At 0.42 a high ego swallowed the whole screen
+        // and hid the ships, which are the reason he is a problem.
+        pow(percent / 100, 0.34)
     }
 
     /// How much harder he is to shift.
@@ -241,7 +249,7 @@ enum Phase: Int, CaseIterable {
         case .settling: return 0
         case .ego: return 0.6
         case .traffic: return 1.1
-        case .tremendous: return 2.4
+        case .tremendous: return 1.2
         }
     }
 

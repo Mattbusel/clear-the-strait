@@ -28,6 +28,14 @@ final class Blocker: SKNode {
     /// channel on a modern phone and looked like a marble in a canal.
     static var baseRadius: CGFloat = 150
 
+    /// The largest he may ever be drawn, whatever his ego says.
+    ///
+    /// Set from the channel. Without it a high ego inflated him past both
+    /// shores at once, and the collision resolution squeezed him sideways out
+    /// of the pinch and off the screen. Being *nearly* too big for the channel
+    /// is the joke; being bigger than the water is a bug.
+    static var maxRadius: CGFloat = 400
+
     /// The visual container. Squash and stretch is applied here, so the physics
     /// body is never scaled and the simulation stays stable.
     private let art = SKNode()
@@ -284,11 +292,11 @@ final class Blocker: SKNode {
     /// shores.
     func apply(ego: Ego) {
         let scale = CGFloat(ego.radiusScale)
-        let newRadius = Blocker.baseRadius * scale
+        let newRadius = min(Blocker.baseRadius * scale, Blocker.maxRadius)
         guard abs(newRadius - radius) > 0.5 else { return }
 
         radius = newRadius
-        art.setScale(scale)
+        art.setScale(newRadius / Blocker.baseRadius)
 
         let velocity = physicsBody?.velocity ?? .zero
         let angular = physicsBody?.angularVelocity ?? 0

@@ -63,7 +63,9 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
 
         // He is sized to the channel so the wedge reads. A fixed radius made
         // him a marble in a canal on a tall phone.
-        Blocker.baseRadius = channel.halfGap * 0.80
+        Blocker.baseRadius = channel.halfGap * 0.72
+        // Never wider than the channel he is stuck in.
+        Blocker.maxRadius = channel.halfGap * 1.04
         wedgeX = size.width * 0.52
 
         blocker.position = CGPoint(x: wedgeX, y: size.height / 2)
