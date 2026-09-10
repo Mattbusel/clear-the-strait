@@ -21,7 +21,12 @@ import SpriteKit
 final class Blocker: SKNode {
 
     /// Radius at 100% ego, in points. Everything else is measured from this.
-    static let baseRadius: CGFloat = 86
+    ///
+    /// Set from the channel when the scene builds, rather than fixed: he has to
+    /// nearly fill the gap for the wedge to read, and the gap is a fraction of
+    /// whatever screen this is. At a fixed 86 points he was a third of the
+    /// channel on a modern phone and looked like a marble in a canal.
+    static var baseRadius: CGFloat = 150
 
     /// The visual container. Squash and stretch is applied here, so the physics
     /// body is never scaled and the simulation stays stable.

@@ -37,6 +37,18 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     /// combo judge measures against.
     private let peakSpeed: Double = 620
 
+    /// Where the channel pinches, and where he is stuck.
+    private var wedgeX: CGFloat = 0
+
+    /// How hard the wedge pulls him back, per point of displacement.
+    ///
+    /// This *is* the wedge. Without it he does not rock, he slides: a shove sent
+    /// him off in that direction forever, the combo judge had no oscillation to
+    /// read, and he wandered off the edge of the screen without ever launching.
+    /// Scaled by mass so a bigger ego is a tighter wedge, which is the whole
+    /// mechanic expressed as one number.
+    private let wedgeStiffness: CGFloat = 26
+
     // MARK: - Lifecycle
 
     override func didMove(to view: SKView) {
@@ -49,7 +61,12 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         channel.build(in: size)
         addChild(channel)
 
-        blocker.position = CGPoint(x: size.width * 0.34, y: size.height / 2)
+        // He is sized to the channel so the wedge reads. A fixed radius made
+        // him a marble in a canal on a tall phone.
+        Blocker.baseRadius = channel.halfGap * 0.80
+        wedgeX = size.width * 0.52
+
+        blocker.position = CGPoint(x: wedgeX, y: size.height / 2)
         blocker.zPosition = 10
         addChild(blocker)
 
@@ -150,6 +167,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
             Audio.shared.phase()
         }
 
+        applyWedge(dt: dt)
         blocker.apply(ego: ego)
         pruneBubbles()
         maybeSpawnBubble(now: currentTime)
@@ -159,6 +177,19 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         hud.update(ego: ego, combo: combo, elapsed: elapsed)
 
         checkEscape()
+    }
+
+    /// Hold him in the pinch, and let him rock about it.
+    private func applyWedge(dt: TimeInterval) {
+        guard let pb = blocker.physicsBody else { return }
+        let offset = wedgeX - blocker.position.x
+        let restoring = offset * wedgeStiffness * CGFloat(ego.massScale)
+        pb.applyForce(CGVector(dx: restoring, dy: 0))
+
+        // Also keep him inside the channel vertically. The shores collide, but
+        // a wake can push him into one and leave him grinding along it.
+        let midY = size.height / 2
+        pb.applyForce(CGVector(dx: 0, dy: (midY - blocker.position.y) * 6))
     }
 
     /// Has he come loose?
