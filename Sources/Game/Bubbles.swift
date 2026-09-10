@@ -119,15 +119,17 @@ final class Bubble: SKNode {
     /// text cut off, and the ones that go up end up sitting on the ego meter,
     /// which is the one readout the player needs while deciding whether to pop
     /// it. An unreadable, unreachable bubble is worse than no bubble.
-    var bounds: CGRect = .infinite
+    /// Named playBounds, not bounds: SKNode already has a `bounds`, and
+    /// shadowing it with a stored property is a compile error.
+    var playBounds: CGRect = .infinite
 
     /// Pull the balloon back inside the playable area.
     func clamp() {
-        guard bounds != .infinite else { return }
+        guard playBounds != .infinite else { return }
         let halfW = tapRadius
         let halfH = tapRadius * 0.7
-        position.x = min(max(position.x, bounds.minX + halfW), bounds.maxX - halfW)
-        position.y = min(max(position.y, bounds.minY + halfH), bounds.maxY - halfH)
+        position.x = min(max(position.x, playBounds.minX + halfW), playBounds.maxX - halfW)
+        position.y = min(max(position.y, playBounds.minY + halfH), playBounds.maxY - halfH)
     }
 
     private func turnHome() {

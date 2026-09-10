@@ -330,7 +330,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
                              dy: up ? CGFloat.random(in: 130...210) : CGFloat.random(in: -210 ... -130))
         let bubble = Bubble(text: Quotes.random(), from: start, drift: drift)
         // Clear of the HUD at the top, and inside the screen everywhere else.
-        bubble.bounds = CGRect(x: 8, y: 8, width: size.width - 16, height: size.height - 150)
+        bubble.playBounds = CGRect(x: 8, y: 8, width: size.width - 16, height: size.height - 150)
         bubble.homeProvider = { [weak self] in self?.blocker.position ?? .zero }
         bubble.onLanded = { [weak self] in
             guard let self else { return }
