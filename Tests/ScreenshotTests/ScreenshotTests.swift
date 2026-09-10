@@ -54,4 +54,38 @@ final class ScreenshotTests: XCTestCase {
         sleep(14)
         snapshot("04_Tremendous")
     }
+
+    /// The launch, captured on its own run.
+    ///
+    /// Reaching it honestly takes a minute of well-timed play, which a UI test
+    /// cannot perform, so the app is started with -fastLaunch to lower the bar.
+    /// This is the shot the whole game builds to and the one a store listing
+    /// most needs.
+    @MainActor
+    func testCaptureLaunch() throws {
+        let app = XCUIApplication()
+        setupSnapshot(app)
+        app.launchArguments += ["-fastLaunch"]
+        app.launch()
+
+        app.buttons["PLAY"].firstMatch.tap()
+        sleep(2)
+
+        let frame = app.windows.firstMatch.frame
+        for i in 0..<14 {
+            let x = i % 2 == 0 ? frame.width * 0.24 : frame.width * 0.64
+            app.coordinate(withNormalizedOffset: .zero)
+                .withOffset(CGVector(dx: x, dy: frame.height * 0.5))
+                .tap()
+            usleep(140_000)
+        }
+        // Mid-flight, while he is still skipping and shouting.
+        sleep(2)
+        snapshot("05_Launch")
+
+        // And the payoff screen.
+        sleep(4)
+        snapshot("06_Result")
+    }
+    }
 }

@@ -37,6 +37,9 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     /// combo judge measures against.
     private let peakSpeed: Double = 620
 
+    /// Multiplies the escape threshold. One in the real game.
+    private var escapeScale: Double = 1
+
     /// Where the channel pinches, and where he is stuck.
     private var wedgeX: CGFloat = 0
 
@@ -80,6 +83,15 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         // that. The left and right are open, because leaving to the right is
         // the entire objective.
         Haptics.prepare()
+
+        // Screenshot runs need to reach the launch, which is the payoff and the
+        // one thing a store listing has to show. Reaching it legitimately takes
+        // a minute of well-timed play, which a UI test cannot perform. This
+        // lowers the bar so the capture can get there, and is reachable only
+        // through a launch argument the shipped app is never started with.
+        if ProcessInfo.processInfo.arguments.contains("-fastLaunch") {
+            escapeScale = 0.06
+        }
     }
 
     override func didChangeSize(_ oldSize: CGSize) {
@@ -153,6 +165,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         lastUpdate = currentTime
 
         blocker.tick(dt: CGFloat(dt))
+        for bubble in bubbles { bubble.clamp() }
 
         if isLaunched {
             updateLaunch(currentTime: currentTime)
@@ -201,9 +214,9 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private func checkEscape() {
         guard let pb = blocker.physicsBody else { return }
         let momentum = Double(hypot(pb.velocity.dx, pb.velocity.dy)) * Double(pb.mass)
-        hud.setEscape(progress: momentum / Escape.threshold(ego: ego))
+        hud.setEscape(progress: momentum / (Escape.threshold(ego: ego) * escapeScale))
 
-        guard Escape.isFreed(momentum: momentum, ego: ego) else { return }
+        guard momentum >= Escape.threshold(ego: ego) * escapeScale else { return }
         beginLaunch(momentum: momentum)
     }
 
@@ -316,6 +329,8 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         let drift = CGVector(dx: side * CGFloat.random(in: 60...170),
                              dy: up ? CGFloat.random(in: 130...210) : CGFloat.random(in: -210 ... -130))
         let bubble = Bubble(text: Quotes.random(), from: start, drift: drift)
+        // Clear of the HUD at the top, and inside the screen everywhere else.
+        bubble.bounds = CGRect(x: 8, y: 8, width: size.width - 16, height: size.height - 150)
         bubble.homeProvider = { [weak self] in self?.blocker.position ?? .zero }
         bubble.onLanded = { [weak self] in
             guard let self else { return }

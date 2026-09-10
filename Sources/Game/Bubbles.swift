@@ -113,6 +113,23 @@ final class Bubble: SKNode {
     /// Where to return to. Set by the scene each frame, because he moves.
     var homeProvider: (() -> CGPoint)?
 
+    /// The rectangle the balloon must stay inside.
+    ///
+    /// Set by the scene. Without it a bubble drifts off the edge with half its
+    /// text cut off, and the ones that go up end up sitting on the ego meter,
+    /// which is the one readout the player needs while deciding whether to pop
+    /// it. An unreadable, unreachable bubble is worse than no bubble.
+    var bounds: CGRect = .infinite
+
+    /// Pull the balloon back inside the playable area.
+    func clamp() {
+        guard bounds != .infinite else { return }
+        let halfW = tapRadius
+        let halfH = tapRadius * 0.7
+        position.x = min(max(position.x, bounds.minX + halfW), bounds.maxX - halfW)
+        position.y = min(max(position.y, bounds.minY + halfH), bounds.maxY - halfH)
+    }
+
     private func turnHome() {
         guard !isPopped else { return }
         // Tint as it turns, so an incoming bubble is visually distinct from one
