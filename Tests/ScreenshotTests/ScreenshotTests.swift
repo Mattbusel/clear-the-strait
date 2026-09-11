@@ -55,31 +55,6 @@ final class ScreenshotTests: XCTestCase {
         snapshot("04_Tremendous")
     }
 
-    /// A full round at normal difficulty, for the App Review screen recording.
-    ///
-    /// Starts on the home screen so the video opens with the app launching.
-    /// The workflow starts recording a few seconds after this runner appears,
-    /// which lands inside the pause on the home screen.
-    @MainActor
-    func testReviewRecording() throws {
-        XCUIDevice.shared.press(.home)
-        sleep(9)
-
-        let app = XCUIApplication()
-        app.launchArguments += ["-demoAutoplay"]
-        app.launch()
-        sleep(3)
-
-        app.buttons["PLAY"].firstMatch.tap()
-
-        let again = app.buttons["PLAY AGAIN"].firstMatch
-        XCTAssertTrue(again.waitForExistence(timeout: 180), "round never finished")
-        sleep(5)
-
-        app.buttons["TITLE"].firstMatch.tap()
-        sleep(3)
-    }
-
     /// The launch, captured on its own run.
     ///
     /// Reaching it honestly takes a minute of well-timed play, which a UI test

@@ -81,6 +81,46 @@ struct RootView: View {
             }
         }
         .statusBarHidden()
+        .task(id: screenKey) { await demoStep() }
+    }
+
+    private var screenKey: Int {
+        switch screen {
+        case .title: return 0
+        case .playing: return 1
+        case .result: return 2
+        }
+    }
+
+    #if DEBUG
+    @State private var demoFinished = false
+    #endif
+
+    /// Presses the buttons for the App Review recording, alongside the scene's
+    /// autoplay: title, one round, the result, back to the title. Debug builds
+    /// only, and only when launched with `-demoAutoplay`.
+    private func demoStep() async {
+        #if DEBUG
+        guard ProcessInfo.processInfo.arguments.contains("-demoAutoplay") else { return }
+        switch screen {
+        case .title:
+            try? await Task.sleep(for: .seconds(3))
+            if demoFinished {
+                // Tells the recording workflow it can stop.
+                let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+                FileManager.default.createFile(atPath: url.appendingPathComponent("demo_done").path,
+                                               contents: nil)
+                return
+            }
+            withAnimation(.easeOut(duration: 0.25)) { screen = .playing }
+        case .playing:
+            break
+        case .result:
+            try? await Task.sleep(for: .seconds(6))
+            demoFinished = true
+            withAnimation(.easeOut(duration: 0.25)) { screen = .title }
+        }
+        #endif
     }
 }
 
