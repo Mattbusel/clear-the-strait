@@ -58,14 +58,12 @@ final class ScreenshotTests: XCTestCase {
     /// A full round at normal difficulty, for the App Review screen recording.
     ///
     /// Starts on the home screen so the video opens with the app launching.
-    /// The marker file tells the workflow to start recording, so none of the
-    /// build or test runner start-up ends up in the footage.
+    /// The workflow starts recording a few seconds after this runner appears,
+    /// which lands inside the pause on the home screen.
     @MainActor
     func testReviewRecording() throws {
         XCUIDevice.shared.press(.home)
-        sleep(1)
-        FileManager.default.createFile(atPath: "/tmp/review_go", contents: nil)
-        sleep(3)
+        sleep(9)
 
         let app = XCUIApplication()
         app.launchArguments += ["-demoAutoplay"]
