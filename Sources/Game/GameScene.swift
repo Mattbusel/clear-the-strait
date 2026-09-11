@@ -92,7 +92,43 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         if ProcessInfo.processInfo.arguments.contains("-fastLaunch") {
             escapeScale = 0.06
         }
+
+        #if DEBUG
+        autoplay = ProcessInfo.processInfo.arguments.contains("-demoAutoplay")
+        #endif
     }
+
+    #if DEBUG
+    // MARK: - Autoplay
+
+    /// Plays a real round at normal difficulty, for the App Review recording.
+    ///
+    /// A UI test cannot win honestly: it has to shove the way he is already
+    /// moving, and it cannot see which way that is. This can. Debug builds only,
+    /// so the store build does not contain it.
+    private var autoplay = false
+    private var nextAutoTap: TimeInterval = 0
+
+    private func autoplayStep(now: TimeInterval) {
+        guard autoplay, elapsed > 1.2, now >= nextAutoTap else { return }
+        // Roughly two taps a second, a relaxed human pace.
+        nextAutoTap = now + Double.random(in: 0.38...0.55)
+
+        // A bubble on its way home is the threat, so pop it first.
+        if let bubble = bubbles.first(where: {
+            !$0.isPopped && !$0.hasLanded && $0.action(forKey: "home") != nil
+        }) {
+            handleTap(at: bubble.position)
+            return
+        }
+
+        // Otherwise shove the way he is already going.
+        let vx = blocker.physicsBody?.velocity.dx ?? 0
+        let side: CGFloat = vx >= 0 ? -1 : 1
+        handleTap(at: CGPoint(x: blocker.position.x + side * blocker.radius * 0.55,
+                              y: blocker.position.y))
+    }
+    #endif
 
     override func didChangeSize(_ oldSize: CGSize) {
         guard size.width > 1, isNodeInTree else { return }
@@ -106,8 +142,10 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else { return }
-        let point = touch.location(in: self)
+        handleTap(at: touch.location(in: self))
+    }
 
+    private func handleTap(at point: CGPoint) {
         // Bubbles first. If a tap lands on one, it pops rather than shoving,
         // because that is the decision the game is about and it should never
         // feel ambiguous.
@@ -188,6 +226,9 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         maybeSpawnBubble(now: currentTime)
         maybeSpawnShip(now: currentTime)
         updateShips(dt: dt)
+        #if DEBUG
+        autoplayStep(now: currentTime)
+        #endif
 
         hud.update(ego: ego, combo: combo, elapsed: elapsed)
 
