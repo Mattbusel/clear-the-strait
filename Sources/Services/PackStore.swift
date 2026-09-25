@@ -23,7 +23,7 @@ final class PackStore: ObservableObject {
 
     /// The first build number that was free to download. Builds 1 and 2 were
     /// the paid $1.99 release.
-    static let firstFreeBuild = 3
+    nonisolated static let firstFreeBuild = 3
 
     /// What the price says when the store has not answered yet.
     static let fallbackPrice = "$1.99"
