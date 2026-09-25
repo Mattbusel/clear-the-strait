@@ -22,9 +22,21 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private var launchStarted: TimeInterval = 0
     private var launchOrigin: CGFloat = 0
 
+    /// Who is stuck, which decides the channel and the twist.
+    let who: Blowhard
+
+    init(size: CGSize, who: Blowhard) {
+        self.who = who
+        super.init(size: size)
+    }
+
+    required init?(coder: NSCoder) { fatalError("not used") }
+
     // Nodes
     private let channel = Channel()
-    private let blocker = Blocker()
+    /// Made in didMove, once his size is known. Built earlier, his art was
+    /// drawn at the previous round's size and looked too small on the first go.
+    private var blocker: Blocker!
     private var bubbles: [Bubble] = []
     private let hud = HUD()
 
@@ -55,8 +67,9 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     // MARK: - Lifecycle
 
     override func didMove(to view: SKView) {
-        backgroundColor = Palette.water
+        backgroundColor = who.theme.water
         scaleMode = .resizeFill
+        channel.theme = who.theme
 
         physicsWorld.gravity = .zero
         physicsWorld.contactDelegate = self
@@ -71,6 +84,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         Blocker.maxRadius = channel.halfGap * 1.04
         wedgeX = size.width * 0.52
 
+        blocker = Blocker(who: who)
         blocker.position = CGPoint(x: wedgeX, y: size.height / 2)
         blocker.zPosition = 10
         addChild(blocker)
@@ -255,9 +269,10 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private func checkEscape() {
         guard let pb = blocker.physicsBody else { return }
         let momentum = Double(hypot(pb.velocity.dx, pb.velocity.dy)) * Double(pb.mass)
-        hud.setEscape(progress: momentum / (Escape.threshold(ego: ego) * escapeScale))
+        let bar = Escape.threshold(ego: ego) * escapeScale * who.twist.escape
+        hud.setEscape(progress: momentum / bar)
 
-        guard momentum >= Escape.threshold(ego: ego) * escapeScale else { return }
+        guard momentum >= bar else { return }
         beginLaunch(momentum: momentum)
     }
 
@@ -266,7 +281,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         launchStarted = elapsed
         launchOrigin = blocker.position.x
 
-        let distance = Escape.distance(momentum: momentum, ego: ego, comboBest: combo.best)
+        let distance = (Escape.distance(momentum: momentum, ego: ego, comboBest: combo.best) * who.twist.launch).rounded()
         pendingDistance = distance
 
         // Everything at once: he pops out, the camera pulls back, the bubbles
@@ -300,7 +315,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private var pendingDistance: Double = 0
 
     private func shoutMidflight() {
-        let bubble = Bubble(text: Quotes.random(),
+        let bubble = Bubble(text: who.randomQuote(),
                             from: CGPoint(x: blocker.position.x, y: blocker.position.y + blocker.radius + 40),
                             drift: CGVector(dx: -40, dy: 60))
         bubble.homeProvider = { [weak self] in self?.blocker.position ?? .zero }
@@ -355,7 +370,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private func maybeSpawnBubble(now: TimeInterval) {
         guard phase.bubbleInterval.isFinite else { return }
         guard now >= nextBubble else { return }
-        nextBubble = now + phase.bubbleInterval * Double.random(in: 0.8...1.2)
+        nextBubble = now + phase.bubbleInterval * who.twist.bubbleInterval * Double.random(in: 0.8...1.2)
 
         // Spawned at the edge of him and thrown clear, not from his middle.
         // Starting at 0.6 of the radius put the balloon on top of his face for
@@ -369,13 +384,14 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         )
         let drift = CGVector(dx: side * CGFloat.random(in: 60...170),
                              dy: up ? CGFloat.random(in: 130...210) : CGFloat.random(in: -210 ... -130))
-        let bubble = Bubble(text: Quotes.random(), from: start, drift: drift)
+        let bubble = Bubble(text: who.randomQuote(), from: start, drift: drift,
+                            returning: 2.6 * who.twist.bubbleReturn)
         // Clear of the HUD at the top, and inside the screen everywhere else.
         bubble.playBounds = CGRect(x: 8, y: 8, width: size.width - 16, height: size.height - 150)
         bubble.homeProvider = { [weak self] in self?.blocker.position ?? .zero }
         bubble.onLanded = { [weak self] in
             guard let self else { return }
-            self.ego.absorb()
+            self.ego.absorb(scale: self.who.twist.egoGain)
             self.blocker.setExpression(.smug)
             Haptics.inflate()
             Audio.shared.inflate()
@@ -383,7 +399,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         bubble.onPopped = { [weak self] in
             guard let self else { return }
-            self.ego.pop()
+            self.ego.pop(scale: self.who.twist.popLoss)
             Haptics.pop()
             Audio.shared.pop()
         }

@@ -87,4 +87,44 @@ final class ScreenshotTests: XCTestCase {
         sleep(4)
         snapshot("06_Result")
     }
+
+    /// The Blowhard Pack: the store sheet as a new player sees it, then each
+    /// pack character in his own channel. The pack characters are unlocked
+    /// with a debug-only launch argument, because a simulator has no sandbox
+    /// account to buy them with.
+    @MainActor
+    func testCapturePack() throws {
+        let sheet = XCUIApplication()
+        setupSnapshot(sheet)
+        sheet.launchArguments += ["-showPack"]
+        sheet.launch()
+        sleep(3)
+        snapshot("05_Pack")
+        sheet.terminate()
+
+        for (index, cast) in ["mayor", "windbag", "tycoon"].enumerated() {
+            let app = XCUIApplication()
+            setupSnapshot(app)
+            app.launchArguments += ["-unlockPack", "-cast", cast]
+            app.launch()
+            sleep(2)
+            if index == 0 { snapshot("06_Picker") }
+
+            app.buttons["PLAY"].firstMatch.tap()
+            sleep(3)
+            let frame = app.windows.firstMatch.frame
+            for round in 0..<3 {
+                for i in 0..<8 {
+                    let x = i % 2 == 0 ? frame.width * 0.22 : frame.width * 0.62
+                    app.coordinate(withNormalizedOffset: .zero)
+                        .withOffset(CGVector(dx: x, dy: frame.height * 0.5))
+                        .tap()
+                    usleep(190_000)
+                }
+                if round < 2 { sleep(4) }
+            }
+            snapshot("0\(7 + index)_\(cast.capitalized)")
+            app.terminate()
+        }
+    }
 }

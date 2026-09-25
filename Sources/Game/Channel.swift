@@ -45,6 +45,9 @@ final class Channel: SKNode {
     private(set) var halfGap: CGFloat = 0
     private(set) var size: CGSize = .zero
 
+    /// Which channel this is. Set before the first build.
+    var theme: Theme = .day
+
     func build(in size: CGSize) {
         removeAllChildren()
         self.size = size
@@ -53,14 +56,14 @@ final class Channel: SKNode {
         // over to empty land.
         halfGap = size.height * 0.32
 
-        let water = SKSpriteNode(color: Palette.water, size: size)
+        let water = SKSpriteNode(color: theme.water, size: size)
         water.position = CGPoint(x: size.width / 2, y: size.height / 2)
         water.zPosition = -100
         addChild(water)
 
         // A darker band down the middle reads as depth and, more usefully,
         // tells the player where the shipping lane is without a label.
-        let lane = SKSpriteNode(color: Palette.deepWater, size: CGSize(width: size.width, height: halfGap * 2))
+        let lane = SKSpriteNode(color: theme.deepWater, size: CGSize(width: size.width, height: halfGap * 2))
         lane.position = CGPoint(x: size.width / 2, y: size.height / 2)
         lane.alpha = 0.38
         lane.zPosition = -99
@@ -70,6 +73,37 @@ final class Channel: SKNode {
         addHeadland(top: false, in: size)
         addBuoys(in: size)
         addSparkle(in: size)
+        addDusk(in: size)
+    }
+
+    /// Night falls over the canal: a dark wash above the land and water, under
+    /// everything that moves, so the characters and ships stay bright.
+    private func addDusk(in size: CGSize) {
+        guard theme.dusk > 0 else { return }
+        let wash = SKSpriteNode(color: SKColor(red: 0.02, green: 0.03, blue: 0.10, alpha: 1), size: size)
+        wash.alpha = theme.dusk
+        wash.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        wash.zPosition = -45
+        addChild(wash)
+
+        // A few stars over each shore.
+        for i in 0..<18 {
+            let star = SKShapeNode(circleOfRadius: CGFloat(1 + (i % 3)))
+            star.fillColor = SKColor(white: 1, alpha: 0.85)
+            star.strokeColor = .clear
+            let top = i % 2 == 0
+            let band = size.height / 2 - halfGap - 30
+            let x = CGFloat((i * 53) % Int(max(size.width, 1)))
+            let y = top ? size.height - CGFloat((i * 37) % Int(max(band, 1))) - 10
+                        : CGFloat((i * 41) % Int(max(band, 1))) + 10
+            star.position = CGPoint(x: x, y: y)
+            star.zPosition = -44
+            star.run(.repeatForever(.sequence([
+                .fadeAlpha(to: 0.3, duration: 0.8 + Double(i % 4) * 0.3),
+                .fadeAlpha(to: 1, duration: 0.8 + Double(i % 4) * 0.3),
+            ])))
+            addChild(star)
+        }
     }
 
     private func addHeadland(top: Bool, in size: CGSize) {
@@ -93,8 +127,8 @@ final class Channel: SKNode {
         path.closeSubpath()
 
         let land = SKShapeNode(path: path)
-        land.fillColor = Palette.land
-        land.strokeColor = Palette.sand
+        land.fillColor = theme.land
+        land.strokeColor = theme.sand
         land.lineWidth = 7
         land.zPosition = -60
         addChild(land)
@@ -116,13 +150,25 @@ final class Channel: SKNode {
                          (size.width * 0.86, true)] {
             let buoy = SKNode()
             let ball = SKShapeNode(circleOfRadius: 9)
-            ball.fillColor = Palette.hullAlt
+            ball.fillColor = theme.buoy
             ball.strokeColor = Palette.ink
             ball.lineWidth = 2
             buoy.addChild(ball)
+            if theme.dusk > 0 {
+                // Lanterns at night: a soft glow round each buoy.
+                let glow = SKShapeNode(circleOfRadius: 26)
+                glow.fillColor = theme.buoy.withAlphaComponent(0.22)
+                glow.strokeColor = .clear
+                glow.zPosition = -1
+                glow.run(.repeatForever(.sequence([
+                    .scale(to: 1.25, duration: 1.2), .scale(to: 1, duration: 1.2),
+                ])))
+                buoy.addChild(glow)
+            }
             let y = size.height / 2 + (top ? halfGap - 26 : -halfGap + 26)
             buoy.position = CGPoint(x: x, y: y)
-            buoy.zPosition = -50
+            // Above the dusk wash at night, so the lanterns glow.
+            buoy.zPosition = theme.dusk > 0 ? -40 : -50
             buoy.run(.repeatForever(.sequence([
                 .moveBy(x: 0, y: 5, duration: 1.1),
                 .moveBy(x: 0, y: -5, duration: 1.1),
@@ -136,7 +182,7 @@ final class Channel: SKNode {
         for i in 0..<14 {
             let t = CGFloat(i) / 14
             let dash = SKShapeNode(rectOf: CGSize(width: 26, height: 4), cornerRadius: 2)
-            dash.fillColor = Palette.shallow
+            dash.fillColor = theme.shallow
             dash.strokeColor = .clear
             dash.alpha = 0.4
             dash.position = CGPoint(x: t * size.width + 20,

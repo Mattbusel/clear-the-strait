@@ -45,8 +45,9 @@ final class Bubble: SKNode {
 
     /// Seconds it drifts outward before turning around.
     private static let outward: TimeInterval = 1.5
-    /// Seconds it takes to come home once it turns.
-    private static let returning: TimeInterval = 2.6
+    /// Seconds it takes to come home once it turns. Some blowhards' promises
+    /// come home faster than others.
+    private let returning: TimeInterval
 
     private(set) var isPopped = false
     private(set) var hasLanded = false
@@ -57,7 +58,8 @@ final class Bubble: SKNode {
     private let label: SKLabelNode
     private let balloon: SKShapeNode
 
-    init(text: String, from origin: CGPoint, drift: CGVector) {
+    init(text: String, from origin: CGPoint, drift: CGVector, returning: TimeInterval = 2.6) {
+        self.returning = returning
         label = SKLabelNode(fontNamed: "AvenirNext-Heavy")
         label.text = text
         label.fontSize = 15
@@ -145,9 +147,10 @@ final class Bubble: SKNode {
             .scale(to: 1.0, duration: 0.3),
         ])), withKey: "pulse")
 
-        let step = SKAction.customAction(withDuration: Bubble.returning) { [weak self] node, elapsed in
+        let returning = self.returning
+        let step = SKAction.customAction(withDuration: returning) { [weak self] node, elapsed in
             guard let self, let home = self.homeProvider?() else { return }
-            let t = CGFloat(elapsed) / CGFloat(Bubble.returning)
+            let t = CGFloat(elapsed) / CGFloat(returning)
             let eased = t * t
             let dx = home.x - node.position.x
             let dy = home.y - node.position.y

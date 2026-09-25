@@ -19,6 +19,7 @@ on:
           - compile       # build + unit tests, ~3 min, no simulator screenshots
           - screenshots   # capture store screenshots, download as an artifact
           - review_video  # a full real round from the home screen, for App Review
+          - pack_check    # a full autoplayed round with each Blowhard Pack character
           - dry_run       # build, sign, upload; do not submit
           - release       # everything, including submit for review
 
@@ -188,8 +189,51 @@ jobs:
           ls -la capture/
           exit $status
 
+      # Every pack character must be able to finish a round at normal
+      # difficulty. The debug autoplay plays each one from the title screen to
+      # the result and back, as it does for the review video, and each round
+      # is recorded so the new channels can be looked at.
+      - name: Play a round with each pack character
+        if: ${{ inputs.action == 'pack_check' }}
+        timeout-minutes: 30
+        run: |
+          set -o pipefail
+          udid=$(xcrun simctl list devices available | grep "$SIM_NAME (" | head -1 | grep -oE "[0-9A-F-]{36}")
+          xcrun simctl boot "$udid" 2>/dev/null || true
+          xcrun simctl bootstatus "$udid" -b
+          xcrun simctl status_bar "$udid" override --time "9:41" --batteryState charged --batteryLevel 100 || true
+          xcodebuild build             -project ClearTheStrait.xcodeproj             -scheme ClearTheStrait             -configuration Debug             -destination "id=$udid"             -derivedDataPath dd             CODE_SIGNING_ALLOWED=NO | xcpretty
+          app=$(find dd/Build/Products -name "ClearTheStrait.app" -path "*iphonesimulator*" | head -1)
+          xcrun simctl install "$udid" "$app"
+          mkdir -p capture
+          failed=0
+          for cast in windbag tycoon mayor; do
+            data=$(xcrun simctl get_app_container "$udid" com.mattbusel.clearthestrait data)
+            rm -f "$data/Documents/demo_done"
+            xcrun simctl io "$udid" recordVideo --codec h264 --force "capture/pack-$cast.mp4" &
+            rec=$!
+            sleep 2
+            start=$(date +%s)
+            xcrun simctl launch "$udid" com.mattbusel.clearthestrait -demoAutoplay -unlockPack -cast "$cast"
+            ok=0
+            for i in $(seq 1 480); do
+              if [ -f "$data/Documents/demo_done" ]; then ok=1; break; fi
+              sleep 0.5
+            done
+            kill -INT $rec 2>/dev/null || true
+            wait $rec 2>/dev/null || true
+            xcrun simctl terminate "$udid" com.mattbusel.clearthestrait || true
+            if [ $ok = 1 ]; then
+              echo "PACK $cast: round finished in $(( $(date +%s) - start ))s"
+            else
+              echo "PACK $cast: TIMED OUT, the round never finished"; failed=1
+            fi
+          done
+          ls -la capture/
+          exit $failed
+
       - name: Upload the video
-        if: ${{ always() && (inputs.action == 'screenshots' || inputs.action == 'review_video') }}
+        if: ${{ always() && (inputs.action == 'screenshots' || inputs.action == 'review_video' || inputs.action == 'pack_check') }}
         uses: actions/upload-artifact@v4
         with:
           name: video

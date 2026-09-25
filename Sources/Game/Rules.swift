@@ -171,13 +171,13 @@ struct Ego {
 
     var isTremendous: Bool { percent >= Ego.tremendousThreshold }
 
-    mutating func absorb() {
-        percent = min(percent + Ego.bubbleGain, Ego.maximum)
+    mutating func absorb(scale: Double = 1) {
+        percent = min(percent + Ego.bubbleGain * scale, Ego.maximum)
         peak = max(peak, percent)
     }
 
-    mutating func pop() {
-        percent = max(percent - Ego.popLoss, Ego.minimum)
+    mutating func pop(scale: Double = 1) {
+        percent = max(percent - Ego.popLoss * scale, Ego.minimum)
     }
 
     /// Slow drift back up, so ignoring bubbles entirely is not a strategy.
@@ -318,6 +318,39 @@ enum Escape {
         let heft = 0.8 + ego.massScale * 0.35
         let skill = 1.0 + Double(comboBest) * 0.03
         return (base * heft * skill).rounded()
+    }
+}
+
+// MARK: - Twists
+
+/// How one blowhard plays differently from another.
+///
+/// Every character in the game is the same round man in the same kind of
+/// channel; what changes is one or two of these multipliers. Kept as plain
+/// numbers here, next to the rules they bend, so a test can prove that no
+/// twist makes a round unwinnable or trivial.
+struct Twist: Equatable {
+    /// Multiplies the seconds between speech bubbles. Below one is chattier.
+    var bubbleInterval: Double = 1
+    /// Multiplies what a returning bubble adds to his ego.
+    var egoGain: Double = 1
+    /// Multiplies what popping a bubble takes off.
+    var popLoss: Double = 1
+    /// Multiplies how long a bubble takes to come home once it turns.
+    var bubbleReturn: Double = 1
+    /// Multiplies the momentum needed to break free.
+    var escape: Double = 1
+    /// Multiplies how far he skips once he is out.
+    var launch: Double = 1
+
+    static let standard = Twist()
+
+    /// Ego gained per second of play from bubbles alone, if the player pops
+    /// none of them, in the given phase. Used by the balance tests.
+    func unpoppedEgoRate(in phase: Phase) -> Double {
+        let interval = phase.bubbleInterval * bubbleInterval
+        guard interval.isFinite, interval > 0 else { return 0 }
+        return Ego.bubbleGain * egoGain / interval
     }
 }
 

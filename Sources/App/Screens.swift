@@ -51,18 +51,35 @@ struct ArcadeButton: ButtonStyle {
 
 struct RootView: View {
     @State private var screen: Screen = .title
+    @ObservedObject private var store = PackStore.shared
+    @AppStorage("cast.selected") private var selectedRaw = Blowhard.ID.blowhard.rawValue
+    @State private var showPack = false
+
+    /// The blowhard for the next round. A pack character whose purchase was
+    /// refunded falls back to the free one rather than staying playable.
+    private var who: Blowhard {
+        let chosen = Blowhard.with(Blowhard.ID(rawValue: selectedRaw) ?? .blowhard)
+        return chosen.isPack && !store.owned ? .blowhard : chosen
+    }
+
+    private var selection: Binding<Blowhard.ID> {
+        Binding(get: { who.id }, set: { selectedRaw = $0.rawValue })
+    }
 
     var body: some View {
         ZStack {
-            UI.sea.ignoresSafeArea()
+            // The title takes on the chosen channel's water.
+            who.waterColor.ignoresSafeArea()
+                .animation(.easeInOut(duration: 0.35), value: who.id)
 
             switch screen {
             case .title:
-                TitleView { screen = .playing }
+                TitleView(who: who, selection: selection, owned: store.owned,
+                          onPack: { showPack = true }) { screen = .playing }
                     .transition(.opacity)
 
             case .playing:
-                GameHost { result in
+                GameHost(who: who) { result in
                     Scores.record(result)
                     withAnimation(.easeOut(duration: 0.3)) {
                         screen = .result(result)
@@ -81,7 +98,21 @@ struct RootView: View {
             }
         }
         .statusBarHidden()
+        .sheet(isPresented: $showPack) { PackSheet(store: store) }
         .task(id: screenKey) { await demoStep() }
+        .onAppear(perform: applyLaunchArguments)
+    }
+
+    /// Screenshot and review-recording switches. Debug builds only.
+    private func applyLaunchArguments() {
+        #if DEBUG
+        let args = ProcessInfo.processInfo.arguments
+        if let i = args.firstIndex(of: "-cast"), i + 1 < args.count,
+           let id = Blowhard.ID(rawValue: args[i + 1]) {
+            selectedRaw = id.rawValue
+        }
+        if args.contains("-showPack") { showPack = true }
+        #endif
     }
 
     private var screenKey: Int {
@@ -125,6 +156,10 @@ struct RootView: View {
 }
 
 struct TitleView: View {
+    let who: Blowhard
+    @Binding var selection: Blowhard.ID
+    let owned: Bool
+    var onPack: () -> Void
     var onPlay: () -> Void
     @State private var bob = false
 
@@ -141,18 +176,42 @@ struct TitleView: View {
                 .kerning(6)
                 .foregroundStyle(UI.sun)
 
-            // The blocker, bobbing, drawn with the same shapes the game uses.
-            BlockerMark()
-                .frame(width: 190, height: 190)
+            // The chosen blowhard, bobbing, drawn by the same node the game uses.
+            Portrait(who: who, side: 200)
                 .offset(y: bob ? -10 : 10)
                 .animation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true), value: bob)
-                .padding(.vertical, 26)
+                .padding(.top, 14)
+                .padding(.bottom, 6)
 
-            Text("He is stuck. Shove him out.")
+            Text(who.channel.uppercased())
+                .font(.system(size: 13, weight: .black, design: .rounded))
+                .kerning(2)
+                .foregroundStyle(UI.sun)
+            Text(who.isPack ? who.twistLine : "He is stuck. Shove him out.")
                 .font(.system(size: 16, weight: .semibold, design: .rounded))
                 .foregroundStyle(UI.foam.opacity(0.9))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 30)
+                .padding(.top, 4)
 
             Spacer()
+
+            CastPicker(selected: $selection, owned: owned, onLocked: onPack)
+                .padding(.bottom, 10)
+
+            if !owned {
+                Button(action: onPack) {
+                    Text("GET THE BLOWHARD PACK")
+                        .font(.system(size: 13, weight: .black, design: .rounded))
+                        .kerning(1.2)
+                        .foregroundStyle(UI.sun)
+                        .padding(.horizontal, 16).padding(.vertical, 8)
+                        .background(Capsule().stroke(UI.sun.opacity(0.8), lineWidth: 2))
+                }
+                .padding(.bottom, 16)
+            } else {
+                Color.clear.frame(height: 12)
+            }
 
             Button("PLAY", action: onPlay)
                 .buttonStyle(ArcadeButton())
@@ -171,58 +230,6 @@ struct TitleView: View {
             Spacer().frame(height: 34)
         }
         .onAppear { bob = true }
-    }
-}
-
-/// The character as a static mark, for the title screen.
-///
-/// Drawn in SwiftUI rather than reusing the SpriteKit node, because embedding a
-/// whole scene to show one stationary shape is a lot of machinery for a picture.
-struct BlockerMark: View {
-    var body: some View {
-        GeometryReader { geo in
-            let s = min(geo.size.width, geo.size.height)
-            ZStack {
-                Circle()
-                    .fill(Color(red: 0.16, green: 0.26, blue: 0.52))
-                    .overlay(Circle().stroke(Color(red: 0.10, green: 0.16, blue: 0.36), lineWidth: 4))
-
-                // Hair
-                Ellipse()
-                    .fill(Color(red: 0.98, green: 0.84, blue: 0.42))
-                    .frame(width: s * 0.78, height: s * 0.30)
-                    .offset(y: -s * 0.40)
-                    .rotationEffect(.degrees(-6))
-
-                // Shirt and tie
-                Capsule()
-                    .fill(UI.foam)
-                    .frame(width: s * 0.24, height: s * 0.38)
-                    .offset(y: s * 0.26)
-                Capsule()
-                    .fill(Color(red: 0.88, green: 0.16, blue: 0.22))
-                    .frame(width: s * 0.09, height: s * 0.36)
-                    .offset(y: s * 0.30)
-
-                // Eyes
-                HStack(spacing: s * 0.20) {
-                    ForEach(0..<2, id: \.self) { _ in
-                        Ellipse()
-                            .fill(.white)
-                            .overlay(Circle().fill(UI.ink).frame(width: s * 0.045))
-                            .frame(width: s * 0.11, height: s * 0.14)
-                    }
-                }
-                .offset(y: -s * 0.10)
-
-                // Mouth
-                // Clear of the collar. Overlapping it read as a nose.
-                Ellipse()
-                    .fill(Color(red: 0.62, green: 0.20, blue: 0.26))
-                    .frame(width: s * 0.18, height: s * 0.10)
-                    .offset(y: s * 0.06)
-            }
-        }
     }
 }
 
@@ -314,11 +321,11 @@ struct ResultView: View {
 final class SceneHolder: ObservableObject {
     private var scene: GameScene?
 
-    func scene(size: CGSize, onFinished: @escaping (RoundResult) -> Void) -> GameScene {
-        if let scene, abs(scene.size.width - size.width) < 1 {
+    func scene(size: CGSize, who: Blowhard, onFinished: @escaping (RoundResult) -> Void) -> GameScene {
+        if let scene, abs(scene.size.width - size.width) < 1, scene.who == who {
             return scene
         }
-        let made = GameScene(size: size)
+        let made = GameScene(size: size, who: who)
         made.scaleMode = .resizeFill
         made.onFinished = onFinished
         scene = made
@@ -337,13 +344,14 @@ final class SceneHolder: ObservableObject {
 /// default grey. SpriteView is given a size by GeometryReader and handles the
 /// presentation itself.
 struct GameHost: View {
+    let who: Blowhard
     var onFinished: (RoundResult) -> Void
     @StateObject private var holder = SceneHolder()
 
     var body: some View {
         GeometryReader { geo in
             SpriteView(
-                scene: holder.scene(size: geo.size, onFinished: onFinished),
+                scene: holder.scene(size: geo.size, who: who, onFinished: onFinished),
                 options: [.ignoresSiblingOrder]
             )
             .ignoresSafeArea()

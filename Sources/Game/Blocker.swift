@@ -42,8 +42,8 @@ final class Blocker: SKNode {
 
     private var body: SKShapeNode!
     private var shirt: SKShapeNode!
-    private var tie: SKShapeNode!
-    private var hair: SKShapeNode!
+    private var tie: SKNode!
+    private var hair: SKNode!
     private var leftEye: SKShapeNode!
     private var rightEye: SKShapeNode!
     private var mouth: SKShapeNode!
@@ -60,7 +60,11 @@ final class Blocker: SKNode {
     private var wobble: CGFloat = 0
     private var wobblePhase: CGFloat = 0
 
-    override init() {
+    /// Who he is. Decides the colours, the headgear and the neckwear.
+    let who: Blowhard
+
+    init(who: Blowhard = .blowhard) {
+        self.who = who
         super.init()
         addChild(art)
         buildArt()
@@ -68,6 +72,7 @@ final class Blocker: SKNode {
     }
 
     required init?(coder: NSCoder) {
+        who = .blowhard
         super.init(coder: coder)
     }
 
@@ -78,8 +83,8 @@ final class Blocker: SKNode {
 
         // The body. One big sphere, because the joke is the sphere.
         body = SKShapeNode(circleOfRadius: r)
-        body.fillColor = Palette.suit
-        body.strokeColor = Palette.suitEdge
+        body.fillColor = who.suit
+        body.strokeColor = who.suitEdge
         body.lineWidth = 4
         art.addChild(body)
 
@@ -98,25 +103,11 @@ final class Blocker: SKNode {
         )
         shirtPath.closeSubpath()
         shirt = SKShapeNode(path: shirtPath)
-        shirt.fillColor = Palette.shirt
+        shirt.fillColor = who.shirt
         shirt.strokeColor = .clear
         art.addChild(shirt)
 
-        // The tie. Absurdly long, which is the one caricature detail doing the
-        // most work for the least ink.
-        let tiePath = CGMutablePath()
-        tiePath.move(to: CGPoint(x: 0, y: r * 0.38))
-        tiePath.addLine(to: CGPoint(x: r * 0.11, y: r * 0.20))
-        tiePath.addLine(to: CGPoint(x: r * 0.09, y: -r * 0.70))
-        tiePath.addQuadCurve(
-            to: CGPoint(x: -r * 0.09, y: -r * 0.70),
-            control: CGPoint(x: 0, y: -r * 0.80)
-        )
-        tiePath.addLine(to: CGPoint(x: -r * 0.11, y: r * 0.20))
-        tiePath.closeSubpath()
-        tie = SKShapeNode(path: tiePath)
-        tie.fillColor = Palette.tie
-        tie.strokeColor = .clear
+        tie = Blocker.neckwear(who, radius: r)
         art.addChild(tie)
 
         // Face. Sits high on the sphere; there is no separate head, which is
@@ -146,30 +137,13 @@ final class Blocker: SKNode {
         mouth.lineWidth = 3
         art.addChild(mouth)
 
-        // The hair. One confident swoop, drawn as a single closed curve.
-        let hairPath = CGMutablePath()
-        hairPath.move(to: CGPoint(x: -r * 0.62, y: r * 0.62))
-        hairPath.addQuadCurve(
-            to: CGPoint(x: r * 0.10, y: r * 1.06),
-            control: CGPoint(x: -r * 0.50, y: r * 1.10)
-        )
-        hairPath.addQuadCurve(
-            to: CGPoint(x: r * 0.74, y: r * 0.70),
-            control: CGPoint(x: r * 0.86, y: r * 1.02)
-        )
-        hairPath.addQuadCurve(
-            to: CGPoint(x: r * 0.40, y: r * 0.74),
-            control: CGPoint(x: r * 0.52, y: r * 0.62)
-        )
-        hairPath.addQuadCurve(
-            to: CGPoint(x: -r * 0.62, y: r * 0.62),
-            control: CGPoint(x: -r * 0.10, y: r * 0.86)
-        )
-        hairPath.closeSubpath()
-        hair = SKShapeNode(path: hairPath)
-        hair.fillColor = Palette.hair
-        hair.strokeColor = Palette.hairEdge
-        hair.lineWidth = 3
+        // Whatever sits on top: hair, hat, or a shine. It trails the motion
+        // one beat behind the limbs, so it is kept as one node. Spectacles and
+        // moustaches go on the face, which does not trail.
+        hair = SKNode()
+        let face = SKNode()
+        Blocker.decorateTop(hair, face: face, who: who, radius: r)
+        art.addChild(face)
         art.addChild(hair)
 
         // Tiny limbs, added last so they sit in front of the suit.
@@ -192,6 +166,11 @@ final class Blocker: SKNode {
         rightLeg.position = CGPoint(x: r * 0.34, y: -r * 0.88)
         rightLeg.zRotation = 1.84
         art.addChild(rightLeg)
+
+        for limb in [leftArm, rightArm, leftLeg, rightLeg] {
+            limb?.fillColor = who.suit
+            limb?.strokeColor = who.suitEdge
+        }
     }
 
     private static func eye() -> SKShapeNode {
@@ -213,8 +192,8 @@ final class Blocker: SKNode {
                                             cornerWidth: thickness / 2,
                                             cornerHeight: thickness / 2,
                                             transform: nil))
-        node.fillColor = Palette.suit
-        node.strokeColor = Palette.suitEdge
+        node.fillColor = .clear
+        node.strokeColor = .clear
         node.lineWidth = 3
         return node
     }
@@ -377,6 +356,251 @@ final class Blocker: SKNode {
         physicsBody?.applyImpulse(CGVector(dx: direction * power, dy: power * 0.42))
         physicsBody?.applyAngularImpulse(-direction * power * 0.004)
         setExpression(.yelling)
+    }
+}
+
+// MARK: - Wardrobe
+
+extension Blocker {
+    private static func shape(_ path: CGPath, fill: SKColor, stroke: SKColor = .clear, width: CGFloat = 0) -> SKShapeNode {
+        let node = SKShapeNode(path: path)
+        node.fillColor = fill
+        node.strokeColor = stroke
+        node.lineWidth = width
+        return node
+    }
+
+    /// The tie, the bow, the waistcoat or the sash.
+    static func neckwear(_ who: Blowhard, radius r: CGFloat) -> SKNode {
+        let holder = SKNode()
+        switch who.neck {
+        case .longTie:
+            // Absurdly long, which is the one caricature detail doing the most
+            // work for the least ink.
+            let p = CGMutablePath()
+            p.move(to: CGPoint(x: 0, y: r * 0.38))
+            p.addLine(to: CGPoint(x: r * 0.11, y: r * 0.20))
+            p.addLine(to: CGPoint(x: r * 0.09, y: -r * 0.70))
+            p.addQuadCurve(to: CGPoint(x: -r * 0.09, y: -r * 0.70), control: CGPoint(x: 0, y: -r * 0.80))
+            p.addLine(to: CGPoint(x: -r * 0.11, y: r * 0.20))
+            p.closeSubpath()
+            holder.addChild(shape(p, fill: who.accent))
+
+        case .bowTie:
+            // A floppy bow, far too big, with polka dots.
+            for side in [-1.0, 1.0] as [CGFloat] {
+                let p = CGMutablePath()
+                p.move(to: CGPoint(x: 0, y: r * 0.30))
+                p.addQuadCurve(to: CGPoint(x: side * r * 0.34, y: r * 0.44), control: CGPoint(x: side * r * 0.16, y: r * 0.50))
+                p.addQuadCurve(to: CGPoint(x: side * r * 0.32, y: r * 0.14), control: CGPoint(x: side * r * 0.42, y: r * 0.28))
+                p.addQuadCurve(to: CGPoint(x: 0, y: r * 0.30), control: CGPoint(x: side * r * 0.16, y: r * 0.12))
+                p.closeSubpath()
+                holder.addChild(shape(p, fill: who.accent, stroke: who.suitEdge, width: 2))
+                let dots: [(CGFloat, CGFloat)] = [(0.20, 0.36), (0.26, 0.22)]
+                for (dx, dy) in dots {
+                    let dot = SKShapeNode(circleOfRadius: r * 0.028)
+                    dot.fillColor = SKColor(white: 1, alpha: 0.8)
+                    dot.strokeColor = .clear
+                    dot.position = CGPoint(x: side * r * dx, y: r * dy)
+                    holder.addChild(dot)
+                }
+            }
+            let knot = SKShapeNode(ellipseOf: CGSize(width: r * 0.13, height: r * 0.15))
+            knot.fillColor = who.accent
+            knot.strokeColor = who.suitEdge
+            knot.lineWidth = 2
+            knot.position = CGPoint(x: 0, y: r * 0.29)
+            holder.addChild(knot)
+
+        case .waistcoat:
+            // A gold waistcoat over the shirt, straining at three buttons.
+            let p = CGMutablePath()
+            p.move(to: CGPoint(x: -r * 0.36, y: r * 0.30))
+            p.addLine(to: CGPoint(x: 0, y: -r * 0.12))
+            p.addLine(to: CGPoint(x: r * 0.36, y: r * 0.30))
+            p.addLine(to: CGPoint(x: r * 0.40, y: -r * 0.56))
+            p.addQuadCurve(to: CGPoint(x: -r * 0.40, y: -r * 0.56), control: CGPoint(x: 0, y: -r * 0.80))
+            p.closeSubpath()
+            holder.addChild(shape(p, fill: who.accent, stroke: SKColor(red: 0.62, green: 0.44, blue: 0.08, alpha: 1), width: 3))
+            for i in 0..<3 {
+                let button = SKShapeNode(circleOfRadius: r * 0.035)
+                button.fillColor = who.suit
+                button.strokeColor = .clear
+                button.position = CGPoint(x: 0, y: -r * 0.24 - CGFloat(i) * r * 0.14)
+                holder.addChild(button)
+            }
+            // A fob chain across the tummy.
+            let chain = CGMutablePath()
+            chain.move(to: CGPoint(x: -r * 0.30, y: -r * 0.30))
+            chain.addQuadCurve(to: CGPoint(x: 0, y: -r * 0.36), control: CGPoint(x: -r * 0.16, y: -r * 0.46))
+            let fob = SKShapeNode(path: chain)
+            fob.strokeColor = SKColor(red: 1.0, green: 0.90, blue: 0.50, alpha: 1)
+            fob.lineWidth = 3
+            holder.addChild(fob)
+
+        case .sash:
+            // A ceremonial sash from shoulder to hip, clipped to the sphere,
+            // and a chain of office with a medallion.
+            let crop = SKCropNode()
+            let mask = SKShapeNode(circleOfRadius: r - 2)
+            mask.fillColor = .white
+            crop.maskNode = mask
+            let band = SKShapeNode(rectOf: CGSize(width: r * 2.4, height: r * 0.26))
+            band.fillColor = who.accent
+            band.strokeColor = SKColor(white: 1, alpha: 0.9)
+            band.lineWidth = 3
+            band.zRotation = -0.62
+            band.position = CGPoint(x: 0, y: -r * 0.10)
+            crop.addChild(band)
+            holder.addChild(crop)
+
+            let gold = SKColor(red: 0.98, green: 0.80, blue: 0.28, alpha: 1)
+            let chain = CGMutablePath()
+            chain.move(to: CGPoint(x: -r * 0.44, y: r * 0.34))
+            chain.addQuadCurve(to: CGPoint(x: r * 0.44, y: r * 0.34), control: CGPoint(x: 0, y: -r * 0.10))
+            let link = SKShapeNode(path: chain)
+            link.strokeColor = gold
+            link.lineWidth = r * 0.05
+            link.lineCap = .round
+            holder.addChild(link)
+            let medal = SKShapeNode(circleOfRadius: r * 0.10)
+            medal.fillColor = gold
+            medal.strokeColor = SKColor(red: 0.62, green: 0.44, blue: 0.08, alpha: 1)
+            medal.lineWidth = 3
+            medal.position = CGPoint(x: 0, y: r * 0.12)
+            holder.addChild(medal)
+        }
+        return holder
+    }
+
+    /// Hair, hat or shine on `top` (which trails the motion), and anything that
+    /// must sit still on the face, such as spectacles, on `face`.
+    static func decorateTop(_ top: SKNode, face: SKNode, who: Blowhard, radius r: CGFloat) {
+        switch who.top {
+        case .swoop:
+            // One confident swoop, drawn as a single closed curve.
+            let p = CGMutablePath()
+            p.move(to: CGPoint(x: -r * 0.62, y: r * 0.62))
+            p.addQuadCurve(to: CGPoint(x: r * 0.10, y: r * 1.06), control: CGPoint(x: -r * 0.50, y: r * 1.10))
+            p.addQuadCurve(to: CGPoint(x: r * 0.74, y: r * 0.70), control: CGPoint(x: r * 0.86, y: r * 1.02))
+            p.addQuadCurve(to: CGPoint(x: r * 0.40, y: r * 0.74), control: CGPoint(x: r * 0.52, y: r * 0.62))
+            p.addQuadCurve(to: CGPoint(x: -r * 0.62, y: r * 0.62), control: CGPoint(x: -r * 0.10, y: r * 0.86))
+            p.closeSubpath()
+            top.addChild(shape(p, fill: who.hair, stroke: who.hairEdge, width: 3))
+
+        case .tufts:
+            // Two magnificent white tufts over the ears, nothing in between.
+            let puffs: [(CGFloat, CGFloat, CGFloat)] = [(0.66, 0.70, 0.17), (0.78, 0.52, 0.15), (0.52, 0.84, 0.13), (0.84, 0.72, 0.12)]
+            for side in [-1.0, 1.0] as [CGFloat] {
+                for (dx, dy, rr) in puffs {
+                    let puff = SKShapeNode(circleOfRadius: r * rr)
+                    puff.fillColor = who.hair
+                    puff.strokeColor = who.hairEdge
+                    puff.lineWidth = 2
+                    puff.position = CGPoint(x: side * r * dx, y: r * dy)
+                    top.addChild(puff)
+                }
+            }
+            // Eyebrows like hedges.
+            for side in [-1.0, 1.0] as [CGFloat] {
+                let brow = SKShapeNode(ellipseOf: CGSize(width: r * 0.24, height: r * 0.08))
+                brow.fillColor = who.hair
+                brow.strokeColor = who.hairEdge
+                brow.lineWidth = 1.5
+                brow.position = CGPoint(x: side * r * 0.26, y: r * 0.70)
+                brow.zRotation = side * -0.18
+                face.addChild(brow)
+            }
+            // Round spectacles on the eyes.
+            for side in [-1.0, 1.0] as [CGFloat] {
+                let lens = SKShapeNode(circleOfRadius: r * 0.15)
+                lens.fillColor = SKColor(white: 1, alpha: 0.12)
+                lens.strokeColor = Palette.ink
+                lens.lineWidth = 3
+                lens.position = CGPoint(x: side * r * 0.26, y: r * 0.50)
+                face.addChild(lens)
+            }
+            let bridge = CGMutablePath()
+            bridge.move(to: CGPoint(x: -r * 0.11, y: r * 0.52))
+            bridge.addQuadCurve(to: CGPoint(x: r * 0.11, y: r * 0.52), control: CGPoint(x: 0, y: r * 0.58))
+            let b = SKShapeNode(path: bridge)
+            b.strokeColor = Palette.ink
+            b.lineWidth = 3
+            face.addChild(b)
+
+        case .topHat:
+            let hat = SKNode()
+            let crown = SKShapeNode(rect: CGRect(x: -r * 0.40, y: r * 0.84, width: r * 0.80, height: r * 0.74), cornerRadius: r * 0.06)
+            crown.fillColor = who.hair
+            crown.strokeColor = who.hairEdge
+            crown.lineWidth = 3
+            hat.addChild(crown)
+            let band = SKShapeNode(rect: CGRect(x: -r * 0.40, y: r * 0.90, width: r * 0.80, height: r * 0.14))
+            band.fillColor = who.accent
+            band.strokeColor = .clear
+            hat.addChild(band)
+            let brim = SKShapeNode(ellipseOf: CGSize(width: r * 1.30, height: r * 0.20))
+            brim.fillColor = who.hair
+            brim.strokeColor = who.hairEdge
+            brim.lineWidth = 3
+            brim.position = CGPoint(x: 0, y: r * 0.84)
+            hat.addChild(brim)
+            // Worn at a jaunty angle.
+            hat.zRotation = -0.12
+            top.addChild(hat)
+            // A monocle on the right eye, on a gold chain.
+            let monocle = SKShapeNode(circleOfRadius: r * 0.16)
+            monocle.fillColor = SKColor(white: 1, alpha: 0.15)
+            monocle.strokeColor = who.accent
+            monocle.lineWidth = 4
+            monocle.position = CGPoint(x: r * 0.26, y: r * 0.50)
+            face.addChild(monocle)
+            let chain = CGMutablePath()
+            chain.move(to: CGPoint(x: r * 0.40, y: r * 0.44))
+            chain.addQuadCurve(to: CGPoint(x: r * 0.62, y: r * 0.06), control: CGPoint(x: r * 0.64, y: r * 0.32))
+            let c = SKShapeNode(path: chain)
+            c.strokeColor = who.accent
+            c.lineWidth = 2
+            face.addChild(c)
+            face.addChild(moustache(width: r * 0.46, droop: r * 0.06, radius: r, color: who.hair))
+
+        case .bald:
+            // A gleaming dome, a fringe round the back, and a moustache you
+            // could hang washing on.
+            let shine = SKShapeNode(ellipseOf: CGSize(width: r * 0.42, height: r * 0.18))
+            shine.fillColor = SKColor(white: 1, alpha: 0.35)
+            shine.strokeColor = .clear
+            shine.position = CGPoint(x: -r * 0.28, y: r * 0.80)
+            shine.zRotation = 0.35
+            top.addChild(shine)
+            for side in [-1.0, 1.0] as [CGFloat] {
+                let fringe = SKShapeNode(ellipseOf: CGSize(width: r * 0.20, height: r * 0.34))
+                fringe.fillColor = who.hair
+                fringe.strokeColor = who.hairEdge
+                fringe.lineWidth = 2
+                fringe.position = CGPoint(x: side * r * 0.84, y: r * 0.40)
+                fringe.zRotation = side * 0.3
+                top.addChild(fringe)
+            }
+            face.addChild(moustache(width: r * 0.70, droop: -r * 0.10, radius: r, color: who.hair))
+        }
+    }
+
+    /// A moustache under the eyes. Negative droop curls the ends upward.
+    private static func moustache(width w: CGFloat, droop: CGFloat, radius r: CGFloat, color: SKColor) -> SKShapeNode {
+        let y = r * 0.28
+        let p = CGMutablePath()
+        p.move(to: CGPoint(x: 0, y: y + r * 0.02))
+        p.addQuadCurve(to: CGPoint(x: -w / 2, y: y - droop), control: CGPoint(x: -w * 0.30, y: y + r * 0.10))
+        p.addQuadCurve(to: CGPoint(x: 0, y: y - r * 0.06), control: CGPoint(x: -w * 0.26, y: y - r * 0.08))
+        p.addQuadCurve(to: CGPoint(x: w / 2, y: y - droop), control: CGPoint(x: w * 0.26, y: y - r * 0.08))
+        p.addQuadCurve(to: CGPoint(x: 0, y: y + r * 0.02), control: CGPoint(x: w * 0.30, y: y + r * 0.10))
+        p.closeSubpath()
+        let node = SKShapeNode(path: p)
+        node.fillColor = color
+        node.strokeColor = Palette.ink.withAlphaComponent(0.6)
+        node.lineWidth = 2
+        return node
     }
 }
 
