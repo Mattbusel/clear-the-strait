@@ -101,6 +101,16 @@ final class LooseningTests: XCTestCase {
         XCTAssertEqual(Loosening.relief(elapsed: .nan), 1)
     }
 
+    func testIgnoringBubblesOrMashingStillEndsTheRound() {
+        // Ego at the ceiling (nobody popped a bubble), or half the taps missed:
+        // the meter alone may never get there, so the clock has to.
+        XCTAssertNil(timeToFree(interval: 0.47, tiers: [.good], egoPercent: Ego.maximum, limit: Loosening.giveUpAfter))
+        XCTAssertFalse(Loosening.mustEnd(elapsed: Loosening.giveUpAfter - 0.1))
+        XCTAssertTrue(Loosening.mustEnd(elapsed: Loosening.giveUpAfter))
+        XCTAssertFalse(Loosening.mustEnd(elapsed: .nan))
+        XCTAssertGreaterThan(Loosening.giveUpAfter, 120, "the cap is a backstop, not the normal ending")
+    }
+
     func testTheWedgeTightensWhenLeftAlone() {
         var loose = Loosening()
         loose.shove(tier: .perfect, streak: 1.5, bar: 1000, sinceLast: 1)

@@ -302,7 +302,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         let progress = max(momentum / bar, loosening.progress)
         hud.setEscape(progress: progress)
 
-        guard progress >= 1 else { return }
+        guard progress >= 1 || Loosening.mustEnd(elapsed: elapsed) else { return }
         // Breaking free always carries at least the full bar's worth, so a
         // round won on the meter launches as far as one won on raw momentum.
         beginLaunch(momentum: max(momentum, Escape.threshold(ego: ego) * who.twist.escape))

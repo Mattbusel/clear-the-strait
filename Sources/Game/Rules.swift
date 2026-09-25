@@ -338,8 +338,12 @@ enum Escape {
 ///   screen is not a strategy. You are fighting your own momentum.
 /// - A miss takes progress back.
 ///
-/// And one thing keeps it finite: after `reliefStart` seconds the bar starts
-/// to ease, so every round ends.
+/// And two things keep it finite: after `reliefStart` seconds the bar starts
+/// to ease, and at `giveUpAfter` seconds he wriggles free on his own. The
+/// relief alone was not enough: a player who never pops a bubble lets his ego
+/// climb to the ceiling, where even the eased bar sits above what plain
+/// tapping reaches, and a player who mashes loses progress to misses as fast
+/// as they gain it. Both are common first rounds, and neither may run forever.
 struct Loosening {
     private(set) var progress: Double = 0
 
@@ -350,6 +354,12 @@ struct Loosening {
     static let reliefStart: Double = 60
     static let reliefPerSecond: Double = 0.01
     static let reliefFloor: Double = 0.5
+    static let giveUpAfter: Double = 150
+
+    /// Whether the round has gone on long enough that he comes free regardless.
+    static func mustEnd(elapsed: Double) -> Bool {
+        elapsed.isFinite && elapsed >= giveUpAfter
+    }
 
     /// What the escape bar is multiplied by this far into the round.
     static func relief(elapsed: Double) -> Double {
