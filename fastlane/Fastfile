@@ -114,6 +114,10 @@ platform :ios do
       app_identifier: APP_IDENTIFIER,
       initial_build_number: 0
     ) + 1
+    # Builds 1 and 2 were the paid release; PackStore.firstFreeBuild treats any
+    # original download below 3 as a paid buyer. Never go below it, even if the
+    # lookup restarts numbering for a new marketing version.
+    next_build = [next_build, 3].max
     UI.message("building as build number #{next_build}")
 
     build_app(
