@@ -27,6 +27,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
 
     init(size: CGSize, who: Blowhard) {
         self.who = who
+        blocker = Blocker(who: who)
         super.init(size: size)
     }
 
@@ -34,9 +35,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
 
     // Nodes
     private let channel = Channel()
-    /// Made in didMove, once his size is known. Built earlier, his art was
-    /// drawn at the previous round's size and looked too small on the first go.
-    private var blocker: Blocker!
+    private let blocker: Blocker
     private var bubbles: [Bubble] = []
     private let hud = HUD()
 
@@ -84,7 +83,6 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         Blocker.maxRadius = channel.halfGap * 1.04
         wedgeX = size.width * 0.52
 
-        blocker = Blocker(who: who)
         blocker.position = CGPoint(x: wedgeX, y: size.height / 2)
         blocker.zPosition = 10
         addChild(blocker)
@@ -143,8 +141,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         peakMomentumSinceLast = 0
         let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("telemetry.txt")
-        try? telemetry.joined(separator: "
-").write(to: url, atomically: true, encoding: .utf8)
+        try? telemetry.joined(separator: "\n").write(to: url, atomically: true, encoding: .utf8)
     }
 
     private func autoplayStep(now: TimeInterval) {

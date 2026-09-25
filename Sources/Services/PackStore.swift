@@ -48,12 +48,12 @@ final class PackStore: ObservableObject {
         isThankYou = defaults.bool(forKey: thanksKey)
 
         #if DEBUG
-        // Screenshots and the pack check run the pack characters without a
-        // sandbox account. Debug builds only; the store build never has this.
-        if ProcessInfo.processInfo.arguments.contains("-unlockPack") {
-            owned = true
-            return
-        }
+        // Screenshot runs and the autoplayed rounds happen on a simulator with
+        // no Apple Account, where asking StoreKit anything puts a sign-in
+        // prompt over the screen. Debug builds only; the store build never
+        // skips StoreKit.
+        if ProcessInfo.processInfo.arguments.contains("-unlockPack") { owned = true }
+        if PackStore.isAutomated { return }
         #endif
 
         // Purchases made on another device, Ask to Buy approvals and refunds
@@ -68,8 +68,19 @@ final class PackStore: ObservableObject {
 
     deinit { updates?.cancel() }
 
+    #if DEBUG
+    /// A screenshot run or an autoplayed round.
+    static var isAutomated: Bool {
+        let args = ProcessInfo.processInfo.arguments
+        return args.contains("-unlockPack") || args.contains("-FASTLANE_SNAPSHOT") || args.contains("-demoAutoplay")
+    }
+    #endif
+
     /// Load the product, re-read entitlements and check for a paid-era install.
     func refresh() async {
+        #if DEBUG
+        if PackStore.isAutomated { return }
+        #endif
         if product == nil {
             product = try? await Product.products(for: [PackStore.productID]).first
         }
