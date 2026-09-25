@@ -321,6 +321,63 @@ enum Escape {
     }
 }
 
+// MARK: - Loosening
+
+/// How far the wedge has worked loose.
+///
+/// Version 1.0 decided the escape on the physics body's instantaneous momentum
+/// alone. In practice the wedge's restoring force and the water's damping ate
+/// each shove before the next tap landed, so momentum never built past about a
+/// third of the bar and a round could go on forever. This meter is the fix.
+///
+/// Every shove works him a little looser, in proportion to what the shove was
+/// worth against the bar he has to clear. The wedge tightens again slowly when
+/// he is left alone. Two things keep it honest:
+///
+/// - Taps closer together than `fullCadence` count for less, so hammering the
+///   screen is not a strategy. You are fighting your own momentum.
+/// - A miss takes progress back.
+///
+/// And one thing keeps it finite: after `reliefStart` seconds the bar starts
+/// to ease, so every round ends.
+struct Loosening {
+    private(set) var progress: Double = 0
+
+    static let gain: Double = 0.2
+    static let decayPerSecond: Double = 0.05
+    static let missPenalty: Double = 0.03
+    static let fullCadence: Double = 0.3
+    static let reliefStart: Double = 60
+    static let reliefPerSecond: Double = 0.01
+    static let reliefFloor: Double = 0.5
+
+    /// What the escape bar is multiplied by this far into the round.
+    static func relief(elapsed: Double) -> Double {
+        guard elapsed.isFinite else { return 1 }
+        return max(reliefFloor, 1 - max(0, elapsed - reliefStart) * reliefPerSecond)
+    }
+
+    /// Fold in a shove. `bar` is the momentum he currently has to clear,
+    /// `sinceLast` the seconds since the previous shove.
+    mutating func shove(tier: ComboTier, streak: Double, bar: Double, sinceLast: Double) {
+        guard bar > 0, bar.isFinite else { return }
+        if tier == .miss {
+            progress = max(0, progress - Loosening.missPenalty)
+            return
+        }
+        let cadence = min(1, max(0, sinceLast) / Loosening.fullCadence)
+        progress += Escape.shoveMomentum(tier: tier, streak: streak) / bar * Loosening.gain * cadence
+    }
+
+    /// Let the wedge tighten back up.
+    mutating func tick(seconds: Double) {
+        guard seconds > 0, seconds.isFinite else { return }
+        progress = max(0, progress - progress * Loosening.decayPerSecond * seconds)
+    }
+
+    var isFree: Bool { progress >= 1 }
+}
+
 // MARK: - Twists
 
 /// How one blowhard plays differently from another.

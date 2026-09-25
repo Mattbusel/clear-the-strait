@@ -259,7 +259,10 @@ final class Blocker: SKNode {
         pb.allowsRotation = true
         pb.categoryBitMask = Category.blocker
         pb.contactTestBitMask = Category.shore | Category.ship | Category.bubble
-        pb.collisionBitMask = Category.shore | Category.ship
+        // Shores only. In 1.0 he also collided with the ships, and the queue
+        // that stacks up behind him shoved him slowly off the right of the
+        // screen. Ships still nudge him through their wakes.
+        pb.collisionBitMask = Category.shore
         physicsBody = pb
     }
 

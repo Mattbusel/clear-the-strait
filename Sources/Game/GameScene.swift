@@ -13,6 +13,8 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     // Model
     private var ego = Ego()
     private var combo = Combo()
+    private var loosening = Loosening()
+    private var lastShoveAt: TimeInterval = -10
     private var phase: Phase = .settling
     private var elapsed: TimeInterval = 0
     private var shipsFreed = 0
@@ -133,9 +135,9 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         peakMomentumSinceLast = max(peakMomentumSinceLast, momentum)
         guard elapsed >= nextTelemetry else { return }
         nextTelemetry = elapsed + 0.5
-        let bar = Escape.threshold(ego: ego) * escapeScale * who.twist.escape
-        telemetry.append(String(format: "%@ t=%.1f peak=%.0f bar=%.0f vx=%.0f x=%.0f wedge=%.0f mass=%.2f r=%.0f ego=%.0f combo=%@x%d",
-                                who.id.rawValue, elapsed, peakMomentumSinceLast, bar, pb.velocity.dx,
+        let bar = currentBar
+        telemetry.append(String(format: "%@ t=%.1f loose=%.2f peak=%.0f bar=%.0f vx=%.0f x=%.0f wedge=%.0f mass=%.2f r=%.0f ego=%.0f combo=%@x%d",
+                                who.id.rawValue, elapsed, loosening.progress, peakMomentumSinceLast, bar, pb.velocity.dx,
                                 blocker.position.x, wedgeX, pb.mass, blocker.radius, ego.percent,
                                 combo.tier.label, combo.count))
         peakMomentumSinceLast = 0
@@ -199,6 +201,10 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         let tier = judge(tap: side, velocityX: velocity, peakSpeed: peakSpeed)
         combo.register(tier)
 
+        loosening.shove(tier: tier, streak: combo.streakBonus, bar: currentBar,
+                        sinceLast: elapsed - lastShoveAt)
+        lastShoveAt = elapsed
+
         let strength = CGFloat(240 * tier.impulseScale * combo.streakBonus)
         blocker.shove(direction: side.push, strength: strength, tier: tier)
 
@@ -247,6 +253,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
 
         elapsed += dt
         ego.tick(seconds: dt, phase: phase)
+        loosening.tick(seconds: dt)
 
         let newPhase = Phase.at(elapsed: elapsed, ego: ego)
         if newPhase != phase {
@@ -291,11 +298,19 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private func checkEscape() {
         guard let pb = blocker.physicsBody else { return }
         let momentum = Double(hypot(pb.velocity.dx, pb.velocity.dy)) * Double(pb.mass)
-        let bar = Escape.threshold(ego: ego) * escapeScale * who.twist.escape
-        hud.setEscape(progress: momentum / bar)
+        let bar = currentBar
+        let progress = max(momentum / bar, loosening.progress)
+        hud.setEscape(progress: progress)
 
-        guard momentum >= bar else { return }
-        beginLaunch(momentum: momentum)
+        guard progress >= 1 else { return }
+        // Breaking free always carries at least the full bar's worth, so a
+        // round won on the meter launches as far as one won on raw momentum.
+        beginLaunch(momentum: max(momentum, Escape.threshold(ego: ego) * who.twist.escape))
+    }
+
+    /// The momentum he has to clear right now.
+    private var currentBar: Double {
+        Escape.threshold(ego: ego) * escapeScale * who.twist.escape * Loosening.relief(elapsed: elapsed)
     }
 
     private func beginLaunch(momentum: Double) {
