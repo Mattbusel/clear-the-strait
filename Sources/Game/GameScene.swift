@@ -123,6 +123,30 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private var autoplay = false
     private var nextAutoTap: TimeInterval = 0
 
+    private var telemetry: [String] = []
+    private var nextTelemetry: TimeInterval = 0
+    private var peakMomentumSinceLast: Double = 0
+
+    /// Twice a second during autoplay: how hard he is moving against the bar
+    /// he has to clear, so a round that will not end can be diagnosed from CI.
+    private func recordTelemetry() {
+        guard autoplay, let pb = blocker.physicsBody else { return }
+        let momentum = Double(hypot(pb.velocity.dx, pb.velocity.dy)) * Double(pb.mass)
+        peakMomentumSinceLast = max(peakMomentumSinceLast, momentum)
+        guard elapsed >= nextTelemetry else { return }
+        nextTelemetry = elapsed + 0.5
+        let bar = Escape.threshold(ego: ego) * escapeScale * who.twist.escape
+        telemetry.append(String(format: "%@ t=%.1f peak=%.0f bar=%.0f vx=%.0f x=%.0f wedge=%.0f mass=%.2f r=%.0f ego=%.0f combo=%@x%d",
+                                who.id.rawValue, elapsed, peakMomentumSinceLast, bar, pb.velocity.dx,
+                                blocker.position.x, wedgeX, pb.mass, blocker.radius, ego.percent,
+                                combo.tier.label, combo.count))
+        peakMomentumSinceLast = 0
+        let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("telemetry.txt")
+        try? telemetry.joined(separator: "
+").write(to: url, atomically: true, encoding: .utf8)
+    }
+
     private func autoplayStep(now: TimeInterval) {
         guard autoplay, elapsed > 1.2, now >= nextAutoTap else { return }
         // Roughly two taps a second, a relaxed human pace.
@@ -242,6 +266,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         updateShips(dt: dt)
         #if DEBUG
         autoplayStep(now: currentTime)
+        recordTelemetry()
         #endif
 
         hud.update(ego: ego, combo: combo, elapsed: elapsed)

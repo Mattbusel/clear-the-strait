@@ -207,9 +207,9 @@ jobs:
           xcrun simctl install "$udid" "$app"
           mkdir -p capture
           failed=0
-          for cast in windbag tycoon mayor; do
+          for cast in blowhard windbag tycoon mayor; do
             data=$(xcrun simctl get_app_container "$udid" com.mattbusel.clearthestrait data)
-            rm -f "$data/Documents/demo_done"
+            rm -f "$data/Documents/demo_done" "$data/Documents/telemetry.txt"
             xcrun simctl io "$udid" recordVideo --codec h264 --force "capture/pack-$cast.mp4" &
             rec=$!
             sleep 2
@@ -223,6 +223,8 @@ jobs:
             kill -INT $rec 2>/dev/null || true
             wait $rec 2>/dev/null || true
             xcrun simctl terminate "$udid" com.mattbusel.clearthestrait || true
+            echo "--- telemetry $cast (every 5th sample)"
+            awk 'NR % 10 == 1' "$data/Documents/telemetry.txt" 2>/dev/null | head -40 || true
             if [ $ok = 1 ]; then
               echo "PACK $cast: round finished in $(( $(date +%s) - start ))s"
             else

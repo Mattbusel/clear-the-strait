@@ -8,7 +8,8 @@ supplied programmatically by `Store/listing.py review-details`.
 No account, login or network connection is required. Tap PLAY and the game
 starts immediately.
 
-HOW TO PLAY: tap the left side of the character to shove him right, the right
+HOW TO PLAY: choose a character in the row above PLAY (the first is free),
+then tap PLAY. Tap the left side of the character to shove him right, the right
 side to shove him left. Shoving in time with the way he is already rocking
 builds a combo. Speech bubbles drift away from him and return; tapping a bubble
 pops it. When enough momentum accumulates he is launched out of the channel and
@@ -48,9 +49,23 @@ advertising.
 
 PRIVACY: no data of any kind is collected. There is no analytics, no crash
 reporting, no advertising identifier and no server belonging to this app. Two
-personal-best numbers are stored on the device in UserDefaults, declared in the
-privacy manifest under CA92.1. Game Center is optional; if the player signs in,
-their scores are handled by Apple's framework.
+personal-best numbers, the chosen character and whether the pack is unlocked
+are stored on the device in UserDefaults, declared in the privacy manifest
+under CA92.1. There is no Game Center in this version.
 
-MONETISATION: a single upfront purchase. No in-app purchases, no subscription,
-no advertising.
+MONETISATION (new in 1.1): the game is now free, with no advertising. One
+optional non-consumable in-app purchase, "The Blowhard Pack"
+(com.mattbusel.clearthestrait.pack1), adds three more playable characters: The
+Windbag, The Tycoon and The Mayor. Each is the same generic unnamed archetype
+treatment as the original (no real person is portrayed), in his own fictional
+channel with a small rule twist.
+
+HOW TO TEST THE PURCHASE: on the title screen tap GET THE BLOWHARD PACK, or tap
+any character with a lock in the row above PLAY. The pack screen shows the
+three characters, UNLOCK (buys the pack) and RESTORE PURCHASES. After buying,
+the three characters become selectable; pick one and tap PLAY. The base game is
+fully playable without buying anything.
+
+People who bought the app when it was paid (builds 1 and 2) receive the pack
+automatically, checked with StoreKit's AppTransaction. This only applies in the
+production App Store, so in the review sandbox the purchase is shown normally.
