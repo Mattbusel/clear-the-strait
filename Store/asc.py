@@ -55,7 +55,7 @@ def token() -> str:
     now = int(time.time())
     payload = {
         "iss": ISSUER_ID,
-        "iat": now,
+        "iat": now - 60,
         "exp": now + 20 * 60,
         "aud": "appstoreconnect-v1",
     }
@@ -181,8 +181,20 @@ def create_app():
     return None
 
 
-def ensure_version(app_id: str, version="1.0"):
-    """Find or create the 1.0 version, which the listing text hangs off."""
+def _marketing_version() -> str:
+    """The version being prepared, read from project.yml so there is one source."""
+    import re
+    spec = (Path(__file__).resolve().parent.parent / "project.yml").read_text(encoding="utf-8")
+    m = re.search(r'MARKETING_VERSION:\s*"([^"]+)"', spec)
+    return m.group(1) if m else "1.0"
+
+
+VERSION = _marketing_version()
+
+
+def ensure_version(app_id: str, version=None):
+    """Find or create the version being prepared, which the listing text hangs off."""
+    version = version or VERSION
     versions = call(
         "GET",
         f"/v1/apps/{app_id}/appStoreVersions",
