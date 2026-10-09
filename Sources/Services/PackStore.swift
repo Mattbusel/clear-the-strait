@@ -72,7 +72,7 @@ final class PackStore: ObservableObject {
     /// A screenshot run or an autoplayed round.
     static var isAutomated: Bool {
         let args = ProcessInfo.processInfo.arguments
-        return args.contains("-unlockPack") || args.contains("-FASTLANE_SNAPSHOT") || args.contains("-demoAutoplay")
+        return args.contains("-unlockPack") || args.contains("-FASTLANE_SNAPSHOT") || args.contains("-demoAutoplay") || args.contains("-shot")
     }
     #endif
 

@@ -18,7 +18,7 @@ options:
 
 settings:
   base:
-    MARKETING_VERSION: "1.1.1"
+    MARKETING_VERSION: "1.2"
     CURRENT_PROJECT_VERSION: "1"
     SWIFT_VERSION: "5.0"
     CODE_SIGN_STYLE: Manual
@@ -47,6 +47,9 @@ targets:
         PRODUCT_NAME: ClearTheStrait
         INFOPLIST_KEY_CFBundleDisplayName: Clear the Strait
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        # The Icon Pack (1.2): alternate icons, switched with setAlternateIconName.
+        ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES: "AppIcon-Night AppIcon-Marina AppIcon-Fog"
+        ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS: YES
         # Portrait only. The channel runs across the short edge and the whole
         # layout assumes it; a landscape build would need a second design.
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait

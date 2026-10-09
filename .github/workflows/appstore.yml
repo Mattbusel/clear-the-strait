@@ -20,6 +20,7 @@ on:
           - screenshots   # capture store screenshots, download as an artifact
           - review_video  # a full real round from the home screen, for App Review
           - pack_check    # a full autoplayed round with each Blowhard Pack character
+          - shots         # every 1.2 screen via -shot launch arguments, for the framed store images
           - dry_run       # build, sign, upload; do not submit
           - release       # everything, including submit for review
 
@@ -249,6 +250,66 @@ jobs:
           name: screenshots
           path: fastlane/screenshots/**/*.png
           if-no-files-found: warn
+
+      # The 1.2 store images. No UI test: each screen is reached with a debug-only
+      # -shot launch argument, and the gameplay frames come from the review
+      # autoplay, which plays a real round.
+      - name: Capture the 1.2 screens
+        if: ${{ inputs.action == 'shots' }}
+        timeout-minutes: 35
+        run: |
+          set -o pipefail
+          udid=$(xcrun simctl list devices available | grep "$SIM_NAME (" | head -1 | grep -oE "[0-9A-F-]{36}")
+          xcrun simctl boot "$udid" 2>/dev/null || true
+          xcrun simctl bootstatus "$udid" -b
+          xcrun simctl status_bar "$udid" override --time "9:41" --batteryState charged --batteryLevel 100 || true
+          xcodebuild build -project ClearTheStrait.xcodeproj -scheme ClearTheStrait -configuration Debug \
+            -destination "id=$udid" -derivedDataPath dd CODE_SIGNING_ALLOWED=NO | xcpretty
+          app=$(find dd/Build/Products -name "ClearTheStrait.app" -path "*iphonesimulator*" | head -1)
+          xcrun simctl install "$udid" "$app"
+          mkdir -p shots
+          bid=com.mattbusel.clearthestrait
+          shot() {  # name, seconds to wait, launch args...
+            local name=$1 wait=$2; shift 2
+            xcrun simctl terminate "$udid" $bid 2>/dev/null || true
+            xcrun simctl launch "$udid" $bid "$@" >/dev/null
+            sleep "$wait"
+            xcrun simctl io "$udid" screenshot "shots/$name.png" >/dev/null
+          }
+          # Warm-up launch: the first frame after an install can be blank.
+          shot warmup 6 -shot title
+          shot title 5 -shot title
+          shot result 5 -shot result
+          shot dailyresult 5 -shot dailyresult dailywon
+          shot locker 6 -shot locker
+          shot records 6 -shot locker records
+          shot trails 6 -shot locker trails
+          shot shop 6 -shot locker shop locked
+          shot retry 6 -shot retry
+          shot pack 6 -shot pack -showPack
+          # A real round, autoplayed: bubbles and ships mid-round.
+          xcrun simctl terminate "$udid" $bid 2>/dev/null || true
+          xcrun simctl launch "$udid" $bid -demoAutoplay -shot play >/dev/null
+          for t in 14 22 30 38; do
+            sleep 8
+            xcrun simctl io "$udid" screenshot "shots/play-$t.png" >/dev/null
+          done
+          # The launch, reached quickly, with the gold trail streaming.
+          xcrun simctl terminate "$udid" $bid 2>/dev/null || true
+          xcrun simctl launch "$udid" $bid -demoAutoplay -fastLaunch -shot play >/dev/null
+          sleep 5
+          for t in a b c d e f; do
+            xcrun simctl io "$udid" screenshot "shots/launch-$t.png" >/dev/null
+            sleep 0.6
+          done
+          ls -la shots
+
+      - name: Upload the 1.2 screens
+        if: ${{ always() && inputs.action == 'shots' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: shots
+          path: shots
 
       - name: Write the signing key to disk
         if: ${{ inputs.action == 'dry_run' || inputs.action == 'release' }}
