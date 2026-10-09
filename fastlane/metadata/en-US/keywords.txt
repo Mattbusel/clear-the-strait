@@ -1,1 +1,1 @@
-arcade,physics,satire,parody,funny,tap,ragdoll,cartoon,silly,one more go,casual,timing
+physics,satire,parody,funny,tap,cartoon,silly,casual,timing,combo,challenge,streak,politician,medals
