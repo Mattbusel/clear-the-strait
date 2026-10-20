@@ -85,7 +85,14 @@ struct ClubSheet: View {
 
     @ViewBuilder private var joinArea: some View {
         VStack(spacing: 10) {
-            if club.products.isEmpty {
+            if club.products.isEmpty && ProcessInfo.processInfo.arguments.contains("-mockplans") {
+                // Debug screenshot runs only (no App Store on the CI simulator): the same cards with the real prices.
+                mockPlan("YEARLY", "$14.99 a year", "Works out to $1.25 a month", "Starts with a 1-week free trial", on: true)
+                mockPlan("MONTHLY", "$2.99 a month", nil, nil, on: false)
+                Button("START FREE TRIAL") {}.buttonStyle(ArcadeButton()).padding(.top, 4)
+                Text("1-week free trial, then $14.99 a year. Renews automatically until cancelled.")
+                    .font(.system(size: 13, weight: .bold, design: .rounded)).foregroundStyle(UI.foam).multilineTextAlignment(.center)
+            } else if club.products.isEmpty {
                 ProgressView().tint(UI.foam).padding(20)
                 Text("Loading plans from the App Store...").font(.system(size: 12, weight: .semibold, design: .rounded)).foregroundStyle(UI.foam.opacity(0.7))
             } else {
@@ -119,6 +126,22 @@ struct ClubSheet: View {
                 .multilineTextAlignment(.center).padding(.top, 4)
         }
         .padding(.top, 4)
+    }
+
+    private func mockPlan(_ name: String, _ price: String, _ per: String?, _ trial: String?, on: Bool) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: on ? "largecircle.fill.circle" : "circle").font(.system(size: 22, weight: .bold)).foregroundStyle(on ? UI.sun : UI.foam.opacity(0.6))
+            VStack(alignment: .leading, spacing: 3) {
+                Text(name).font(.system(size: 17, weight: .black, design: .rounded)).foregroundStyle(UI.foam)
+                Text(price).font(.system(size: 15, weight: .heavy, design: .rounded)).foregroundStyle(UI.sun)
+                if let per { Text(per).font(.system(size: 12, weight: .semibold, design: .rounded)).foregroundStyle(UI.foam.opacity(0.75)) }
+                if let trial { Text(trial).font(.system(size: 12, weight: .bold, design: .rounded)).foregroundStyle(UI.foam) }
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(14)
+        .background(RoundedRectangle(cornerRadius: 20, style: .continuous).fill(UI.foam.opacity(on ? 0.14 : 0.06))
+            .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).stroke(on ? UI.sun : UI.foam.opacity(0.2), lineWidth: on ? 3 : 2)))
     }
 
     private func termsLine(_ p: Product?, trial: String?) -> String {

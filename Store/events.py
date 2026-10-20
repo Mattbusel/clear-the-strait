@@ -1,4 +1,4 @@
-"""In-App Events for 1.2: the November Club Season and a Daily Strait week-streak challenge.
+"""In-App Event for 1.2: the premiere of the Club Season mode (no recurring challenge events: Guideline 2.3.13).
 
     python Store/events.py <media dir> [--dry]     media dir: <key>-card.png (1920x1080), <key>-details.png (1080x1920)
     python Store/events.py state
@@ -15,16 +15,11 @@ import asc  # noqa: E402
 
 APP = "6810644510"
 EVENTS = [
-    {"key": "season", "ref": "Club Season 2 (Nov 2026)", "badge": "NEW_SEASON", "deepLink": "clearthestrait://season",
+    {"key": "season", "ref": "Club Season premiere (Nov 2026)", "badge": "PREMIERE", "deepLink": "clearthestrait://season",
      "purchaseRequirement": "SUBSCRIPTION", "purpose": "KEEP_ACTIVE_USERS_INFORMED", "priority": "HIGH",
      "schedule": {"publishStart": "2026-10-25T16:00:00Z", "eventStart": "2026-11-01T04:00:00Z", "eventEnd": "2026-12-01T04:59:00Z"},
-     "copy": {"en-US": ("Club Season 2: Regatta", "Ten new goals across every channel",
-                        "Ten goals for November, harder as the month goes on. Finish all ten for the Full Season medal.")}},
-    {"key": "streak", "ref": "Seven Day Strait (Nov 2026)", "badge": "CHALLENGE", "deepLink": "clearthestrait://daily",
-     "purchaseRequirement": "NO_COST_ASSOCIATED", "purpose": "APPROPRIATE_FOR_ALL_USERS", "priority": "NORMAL",
-     "schedule": {"publishStart": "2026-10-27T16:00:00Z", "eventStart": "2026-11-02T05:00:00Z", "eventEnd": "2026-11-16T05:00:00Z"},
-     "copy": {"en-US": ("The Seven Day Strait", "Beat seven Daily Straits in a row",
-                        "A new strait every day, the same for everyone. Beat seven in a row for the Week Streak medal.")}},
+     "copy": {"en-US": ("The Club Season Premieres", "A new mode: ten goals across every channel",
+                        "New in 1.2: ten goals through all four channels, harder as you go. Finish them for the Full Season medal.")}},
 ]
 
 

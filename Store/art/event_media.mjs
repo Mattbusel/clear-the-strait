@@ -7,7 +7,7 @@ import { readFileSync, mkdirSync } from "fs";
 const [raw, out] = process.argv.slice(2);
 mkdirSync(out, { recursive: true });
 const b64 = (f) => `data:image/png;base64,${readFileSync(`${raw}/${f}.png`).toString("base64")}`;
-const sets = { season: ["season", "play-tycoon", "seasonresult"], streak: ["dailyresult", "title", "widgets"] };
+const sets = { season: ["season", "play-tycoon", "seasonresult"] };
 const bg = "radial-gradient(1100px 800px at 50% 40%,#2aa6db,#106ba3 55%,#0b3f66)";
 const b = await chromium.launch();
 for (const [key, shots] of Object.entries(sets)) {

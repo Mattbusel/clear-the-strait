@@ -298,11 +298,11 @@ jobs:
           shot season 6 -shot season -club
           shot season-free 6 -shot season
           shot club 6 -shot club -club
-          shot clubpay 6 -shot club
+          shot clubpay 6 -shot club -mockplans
           # The first-round coach, over a live round.
           t 40 xcrun simctl terminate "$udid" $bid 2>/dev/null || true
-          t 40 xcrun simctl launch "$udid" $bid -shot play -coach >/dev/null
-          sleep 3; t 40 xcrun simctl io "$udid" screenshot "shots/coach-a.png" >/dev/null
+          t 40 xcrun simctl launch "$udid" $bid -demoAutoplay -shot play -coach >/dev/null
+          sleep 7; t 40 xcrun simctl io "$udid" screenshot "shots/coach-a.png" >/dev/null
           sleep 5; t 40 xcrun simctl io "$udid" screenshot "shots/coach-b.png" >/dev/null
           sleep 6; t 40 xcrun simctl io "$udid" screenshot "shots/coach-c.png" >/dev/null
           # A real round, autoplayed: bubbles and ships mid-round.

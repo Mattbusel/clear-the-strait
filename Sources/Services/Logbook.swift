@@ -264,6 +264,7 @@ final class Logbook: ObservableObject {
         c.medals = ["first", "combo15", "combo30", "tremendous", "needle", "quick", "far", "moon", "rounds10", "daily", "streak7"]
         c.trail = TrailStyle.gold.rawValue
         c.streak = 9; c.bestStreak = 9; c.lastWonDay = DailyStrait.key(Date().addingTimeInterval(-86_400))
+        c.wonDays = [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 14, 15, 18, 19, 22].map { DailyStrait.key(Date().addingTimeInterval(-86_400 * Double($0))) }.reversed()
         c.retries = 2; c.shields = 2; c.postcards = 3
         c.seasonMonth = Season.key(Date()); c.seasonDone = [0, 1, 2, 3, 5]; c.seasonBadges = []
         let args = ProcessInfo.processInfo.arguments
