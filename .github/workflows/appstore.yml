@@ -259,22 +259,25 @@ jobs:
         timeout-minutes: 50
         run: |
           set -o pipefail
+          set -x
+          # Every simulator call gets a deadline: a hung simctl ate the whole 50 minutes twice.
+          t() { perl -e 'alarm shift; exec @ARGV' "$@"; }
           udid=$(xcrun simctl list devices available | grep "$SIM_NAME (" | head -1 | grep -oE "[0-9A-F-]{36}")
-          xcrun simctl boot "$udid" 2>/dev/null || true
-          xcrun simctl bootstatus "$udid" -b
+          t 180 xcrun simctl boot "$udid" 2>/dev/null || true
+          t 180 xcrun simctl bootstatus "$udid" -b || true
           xcrun simctl status_bar "$udid" override --time "9:41" --batteryState charged --batteryLevel 100 || true
           xcodebuild build -project ClearTheStrait.xcodeproj -scheme ClearTheStrait -configuration Debug \
             -destination "id=$udid" -derivedDataPath dd CODE_SIGNING_ALLOWED=NO | xcpretty
           app=$(find dd/Build/Products -name "ClearTheStrait.app" -path "*iphonesimulator*" | head -1)
-          xcrun simctl install "$udid" "$app"
+          t 180 xcrun simctl install "$udid" "$app"
           mkdir -p shots
           bid=com.mattbusel.clearthestrait
           shot() {  # name, seconds to wait, launch args...
             local name=$1 wait=$2; shift 2
             xcrun simctl terminate "$udid" $bid 2>/dev/null || true
-            xcrun simctl launch "$udid" $bid "$@" >/dev/null
+            t 60 xcrun simctl launch "$udid" $bid "$@" >/dev/null || true
             sleep "$wait"
-            xcrun simctl io "$udid" screenshot "shots/$name.png" >/dev/null
+            t 60 xcrun simctl io "$udid" screenshot "shots/$name.png" >/dev/null || true
           }
           # Warm-up launch: the first frame after an install can be blank.
           shot warmup 6 -shot title
