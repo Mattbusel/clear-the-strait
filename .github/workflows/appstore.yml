@@ -99,6 +99,7 @@ jobs:
         run: xcodegen generate
 
       - name: Build and unit test
+        if: ${{ inputs.action != 'shots' }}
         run: |
           # pipefail is load bearing. Without it the pipeline's exit status is
           # xcpretty's, not xcodebuild's, so a build with hard compile errors
@@ -260,9 +261,11 @@ jobs:
         run: |
           set -o pipefail
           set -x
+          set +e
           # Every simulator call gets a deadline: a hung simctl ate the whole 50 minutes twice.
           t() { perl -e 'alarm shift; exec @ARGV' "$@"; }
           udid=$(xcrun simctl list devices available | grep "$SIM_NAME (" | head -1 | grep -oE "[0-9A-F-]{36}")
+          t 60 xcrun simctl shutdown all || true
           t 180 xcrun simctl boot "$udid" 2>/dev/null || true
           t 180 xcrun simctl bootstatus "$udid" -b || true
           xcrun simctl status_bar "$udid" override --time "9:41" --batteryState charged --batteryLevel 100 || true
@@ -274,7 +277,7 @@ jobs:
           bid=com.mattbusel.clearthestrait
           shot() {  # name, seconds to wait, launch args...
             local name=$1 wait=$2; shift 2
-            xcrun simctl terminate "$udid" $bid 2>/dev/null || true
+            t 40 xcrun simctl terminate "$udid" $bid 2>/dev/null || true
             t 60 xcrun simctl launch "$udid" $bid "$@" >/dev/null || true
             sleep "$wait"
             t 60 xcrun simctl io "$udid" screenshot "shots/$name.png" >/dev/null || true
@@ -297,46 +300,46 @@ jobs:
           shot club 6 -shot club -club
           shot clubpay 6 -shot club
           # The first-round coach, over a live round.
-          xcrun simctl terminate "$udid" $bid 2>/dev/null || true
-          xcrun simctl launch "$udid" $bid -shot play -coach >/dev/null
-          sleep 3; xcrun simctl io "$udid" screenshot "shots/coach-a.png" >/dev/null
-          sleep 5; xcrun simctl io "$udid" screenshot "shots/coach-b.png" >/dev/null
-          sleep 6; xcrun simctl io "$udid" screenshot "shots/coach-c.png" >/dev/null
+          t 40 xcrun simctl terminate "$udid" $bid 2>/dev/null || true
+          t 40 xcrun simctl launch "$udid" $bid -shot play -coach >/dev/null
+          sleep 3; t 40 xcrun simctl io "$udid" screenshot "shots/coach-a.png" >/dev/null
+          sleep 5; t 40 xcrun simctl io "$udid" screenshot "shots/coach-b.png" >/dev/null
+          sleep 6; t 40 xcrun simctl io "$udid" screenshot "shots/coach-c.png" >/dev/null
           # A real round, autoplayed: bubbles and ships mid-round.
-          xcrun simctl terminate "$udid" $bid 2>/dev/null || true
-          xcrun simctl launch "$udid" $bid -demoAutoplay -shot play >/dev/null
+          t 40 xcrun simctl terminate "$udid" $bid 2>/dev/null || true
+          t 40 xcrun simctl launch "$udid" $bid -demoAutoplay -shot play >/dev/null
           for t in 14 22 30 38; do
             sleep 8
-            xcrun simctl io "$udid" screenshot "shots/play-$t.png" >/dev/null
+            t 40 xcrun simctl io "$udid" screenshot "shots/play-$t.png" >/dev/null
           done
           # The pack channels, autoplayed (tagged as in-app content on the store images).
           for cast in windbag tycoon mayor; do
-            xcrun simctl terminate "$udid" $bid 2>/dev/null || true
-            xcrun simctl launch "$udid" $bid -demoAutoplay -shot play -unlockPack -club -cast $cast >/dev/null
+            t 40 xcrun simctl terminate "$udid" $bid 2>/dev/null || true
+            t 40 xcrun simctl launch "$udid" $bid -demoAutoplay -shot play -unlockPack -club -cast $cast >/dev/null
             sleep 20
-            xcrun simctl io "$udid" screenshot "shots/play-$cast.png" >/dev/null
+            t 40 xcrun simctl io "$udid" screenshot "shots/play-$cast.png" >/dev/null
           done
           # The launch, reached quickly, with the gold trail streaming.
-          xcrun simctl terminate "$udid" $bid 2>/dev/null || true
-          xcrun simctl launch "$udid" $bid -demoAutoplay -fastLaunch -shot play >/dev/null
+          t 40 xcrun simctl terminate "$udid" $bid 2>/dev/null || true
+          t 40 xcrun simctl launch "$udid" $bid -demoAutoplay -fastLaunch -shot play >/dev/null
           sleep 5
           for t in a b c d e f; do
-            xcrun simctl io "$udid" screenshot "shots/launch-$t.png" >/dev/null
+            t 40 xcrun simctl io "$udid" screenshot "shots/launch-$t.png" >/dev/null
             sleep 0.6
           done
           # App Preview footage: one real autoplayed round from the title to the
           # result, recorded whole; it is cut to 15 to 30 seconds afterwards.
           for take in blowhard tycoon; do
-            xcrun simctl terminate "$udid" $bid 2>/dev/null || true
-            data=$(xcrun simctl get_app_container "$udid" $bid data)
+            t 40 xcrun simctl terminate "$udid" $bid 2>/dev/null || true
+            data=$(t 40 xcrun simctl get_app_container "$udid" $bid data)
             rm -f "$data/Documents/demo_done"
             xcrun simctl io "$udid" recordVideo --codec h264 --force "shots/preview-$take.mp4" &
             rec=$!
             sleep 2
             if [ $take = blowhard ]; then
-              xcrun simctl launch "$udid" $bid -demoAutoplay -shot play >/dev/null
+              t 40 xcrun simctl launch "$udid" $bid -demoAutoplay -shot play >/dev/null
             else
-              xcrun simctl launch "$udid" $bid -demoAutoplay -shot play -unlockPack -club -cast tycoon >/dev/null
+              t 40 xcrun simctl launch "$udid" $bid -demoAutoplay -shot play -unlockPack -club -cast tycoon >/dev/null
             fi
             for i in $(seq 1 360); do
               if [ -f "$data/Documents/demo_done" ]; then break; fi
