@@ -29,6 +29,12 @@ struct Career: Codable, Equatable {
     var postcards = 0
     var freePostcardUsed = false
     var freeShieldMonth = ""
+    // The Club Season and the Strait Club (1.2)
+    var seasonMonth = ""
+    var seasonDone: [Int] = []
+    var seasonBadges: [String] = []
+    var clubShieldMonth = ""
+    var reviewAskedVersion = ""
 
     init() {}
 
@@ -44,6 +50,8 @@ struct Career: Codable, Equatable {
         lastWonDay = v(.lastWonDay, ""); streak = v(.streak, 0); bestStreak = v(.bestStreak, 0); wonDays = v(.wonDays, [])
         retries = v(.retries, 0); shields = v(.shields, 0); postcards = v(.postcards, 0)
         freePostcardUsed = v(.freePostcardUsed, false); freeShieldMonth = v(.freeShieldMonth, "")
+        seasonMonth = v(.seasonMonth, ""); seasonDone = v(.seasonDone, []); seasonBadges = v(.seasonBadges, [])
+        clubShieldMonth = v(.clubShieldMonth, ""); reviewAskedVersion = v(.reviewAskedVersion, "")
     }
 }
 
@@ -53,6 +61,12 @@ struct RoundNews: Equatable {
     var dailyWon = false
     var dailyFailed = false
     var streak = 0
+    /// The season goal this round was for, and whether it was met.
+    var seasonGoal: SeasonGoal?
+    var seasonMet = false
+    /// True when this round finished the whole season.
+    var seasonComplete = false
+    var newBest = false
 }
 
 @MainActor
@@ -85,12 +99,22 @@ final class Logbook: ObservableObject {
         if ProcessInfo.processInfo.arguments.contains("-shot") { return }
         #endif
         if let d = try? JSONEncoder().encode(career) { UserDefaults.standard.set(d, forKey: key) }
+        Glance(streak: career.streak, wonDay: career.dailyWon ? career.dailyDay : career.lastWonDay,
+               bestStreak: career.bestStreak, shields: career.shields, club: isClub).publish()
     }
 
     var daily: DailyStrait { DailyStrait.today }
     var trail: TrailStyle { TrailStyle(rawValue: career.trail) ?? .spray }
-    var attemptsLeft: Int { max(0, Logbook.freeAttempts - career.dailyAttempts) + career.retries }
+    var attemptsLeft: Int {
+        if isClub { return 99 }
+        return max(0, Logbook.freeAttempts - career.dailyAttempts) + career.retries
+    }
     var hasFreeAttempt: Bool { career.dailyAttempts < Logbook.freeAttempts }
+    /// Strait Club members: unlimited daily retries and postcards, more shields.
+    var isClub: Bool { Club.shared.isMember }
+    var season: Season { Season.current }
+    /// Goals done in the current month's season.
+    var seasonDone: Set<Int> { career.seasonMonth == season.month ? Set(career.seasonDone) : [] }
     func has(_ medal: String) -> Bool { career.medals.contains(medal) }
 
     func ownsTrail(_ t: TrailStyle, pack: Bool) -> Bool {
@@ -109,6 +133,14 @@ final class Logbook: ObservableObject {
         if career.freeShieldMonth != month {
             career.freeShieldMonth = month
             career.shields += 1
+        }
+        if isClub, career.clubShieldMonth != month {
+            career.clubShieldMonth = month
+            career.shields += Club.monthlyShields
+        }
+        if career.seasonMonth != month {
+            career.seasonMonth = month
+            career.seasonDone = []
         }
         if career.dailyDay != today {
             career.dailyDay = today
@@ -137,7 +169,7 @@ final class Logbook: ObservableObject {
     /// Spend an attempt at today's strait. False when there are none left.
     func startDaily() -> Bool {
         rollDay()
-        if career.dailyAttempts < Logbook.freeAttempts {
+        if career.dailyAttempts < Logbook.freeAttempts || isClub {
             career.dailyAttempts += 1
         } else if career.retries > 0 {
             career.retries -= 1
@@ -150,7 +182,7 @@ final class Logbook: ObservableObject {
     }
 
     /// Fold in a finished round.
-    func record(_ r: RoundResult, cast: Blowhard.ID, daily: Bool) -> RoundNews {
+    func record(_ r: RoundResult, cast: Blowhard.ID, daily: Bool, season goal: SeasonGoal? = nil) -> RoundNews {
         var news = RoundNews()
         career.rounds += 1
         career.totalMetres += r.launchMetres
@@ -178,7 +210,23 @@ final class Logbook: ObservableObject {
         }
         news.streak = career.streak
 
-        let earned = Medal.earned(by: r, rounds: career.rounds, dailyWon: news.dailyWon, streak: career.streak)
+        if let goal {
+            rollDay()
+            news.seasonGoal = goal
+            if goal.goal.isMet(by: r), season.goals.contains(goal) {
+                news.seasonMet = true
+                if !career.seasonDone.contains(goal.index) {
+                    career.seasonDone.append(goal.index)
+                    if career.seasonDone.count >= Season.goalCount, !career.seasonBadges.contains(season.month) {
+                        career.seasonBadges.append(season.month)
+                        news.seasonComplete = true
+                    }
+                }
+            }
+        }
+
+        var earned = Medal.earned(by: r, rounds: career.rounds, dailyWon: news.dailyWon, streak: career.streak)
+        if !career.seasonBadges.isEmpty { earned.append("season") }
         for id in earned where !career.medals.contains(id) {
             career.medals.append(id)
             if let m = Medal.all.first(where: { $0.id == id }) { news.newMedals.append(m) }
@@ -193,9 +241,16 @@ final class Logbook: ObservableObject {
     func add(shields n: Int) { career.shields += n; save() }
     func add(postcards n: Int) { career.postcards += n; save() }
 
+    /// Asked for an App Store rating in this version already?
+    func shouldAskForReview(version: String) -> Bool { career.rounds >= 4 && career.reviewAskedVersion != version }
+    func didAskForReview(version: String) { career.reviewAskedVersion = version; save() }
+
     /// The first postcard is free; after that they come in packs of three.
-    var canMakePostcard: Bool { !career.freePostcardUsed || career.postcards > 0 }
+    var canMakePostcard: Bool { isClub || !career.freePostcardUsed || career.postcards > 0 }
+    /// Postcards ready to make right now, for the result screen's button.
+    var postcardsReady: Int { (career.freePostcardUsed ? 0 : 1) + career.postcards }
     func spendPostcard() {
+        if isClub { return }
         if !career.freePostcardUsed { career.freePostcardUsed = true } else { career.postcards = max(0, career.postcards - 1) }
         save()
     }
@@ -210,6 +265,7 @@ final class Logbook: ObservableObject {
         c.trail = TrailStyle.gold.rawValue
         c.streak = 9; c.bestStreak = 9; c.lastWonDay = DailyStrait.key(Date().addingTimeInterval(-86_400))
         c.retries = 2; c.shields = 2; c.postcards = 3
+        c.seasonMonth = Season.key(Date()); c.seasonDone = [0, 1, 2, 3, 5]; c.seasonBadges = []
         let args = ProcessInfo.processInfo.arguments
         if args.contains("dailywon") {
             c.dailyDay = DailyStrait.key(Date()); c.dailyAttempts = 1; c.dailyWon = true

@@ -416,6 +416,22 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
             node.fillColor = rainbow.randomElement() ?? Palette.hull
             node.zRotation = CGFloat.random(in: 0 ... .pi)
             drift.dy -= 50
+        case .stars:
+            // A five-pointed star, gold and white, twinkling as it falls behind.
+            let star = CGMutablePath()
+            let outer: CGFloat = CGFloat.random(in: 7...11), inner = outer * 0.45
+            for k in 0..<10 {
+                let a = CGFloat(k) * .pi / 5 - .pi / 2
+                let r = k % 2 == 0 ? outer : inner
+                let pt = CGPoint(x: cos(a) * r, y: sin(a) * r)
+                if k == 0 { star.move(to: pt) } else { star.addLine(to: pt) }
+            }
+            star.closeSubpath()
+            node = SKShapeNode(path: star)
+            node.fillColor = Bool.random() ? Palette.hullAlt : Palette.foam
+            node.glowWidth = 2
+            node.zRotation = CGFloat.random(in: 0 ... .pi)
+            drift = CGVector(dx: -CGFloat.random(in: 10...40), dy: CGFloat.random(in: -40...10)); life = 1.0
         }
         if trail != .gold { node.strokeColor = .clear }
         node.position = at

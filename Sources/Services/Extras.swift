@@ -69,10 +69,14 @@ final class Extras: ObservableObject {
         }
         owned = has
         UserDefaults.standard.set(Array(has), forKey: "extras.owned")
-        if !has.contains(Extras.iconsID), UIApplication.shared.alternateIconName != nil {
+        // The Club also opens the icons. Only put the icon back once StoreKit has
+        // answered for the Club too, so a member is never reset on a guess. A
+        // paid trail is not reset at all: it simply plays as Sea Spray until it
+        // is theirs again (see RootView.trail).
+        await Club.shared.refresh()
+        if !has.contains(Extras.iconsID), Club.shared.checked, !Club.shared.isMember, UIApplication.shared.alternateIconName != nil {
             try? await UIApplication.shared.setAlternateIconName(nil)
         }
-        if !has.contains(Extras.trailsID), Logbook.shared.trail.isPaid { Logbook.shared.setTrail(.spray) }
         await load()
     }
 

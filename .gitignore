@@ -16,3 +16,5 @@ AuthKey_*
 *.cer
 Store/private/
 .env
+__pycache__/
+*.pyc

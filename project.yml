@@ -31,12 +31,25 @@ targets:
     type: application
     platform: iOS
 
+    dependencies:
+      - target: StraitWidgets
+
     sources:
       - path: Sources
       - path: Resources/PrivacyInfo.xcprivacy
         buildPhase: resources
       - path: Resources/Assets.xcassets
         buildPhase: resources
+
+    # 1.2: the app group the widgets read the streak from, and Game Center now
+    # that the app is published (the trap below only applies to an app that
+    # has never been released).
+    entitlements:
+      path: Resources/ClearTheStrait.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.mattbusel.clearthestrait
+        com.apple.developer.game-center: true
 
     settings:
       base:
@@ -58,15 +71,11 @@ targets:
         # layout surface for a game nobody is going to play on a tablet.
         TARGETED_DEVICE_FAMILY: "1"
         SUPPORTS_MACCATALYST: NO
+        PROVISIONING_PROFILE_SPECIFIER: "${APP_PROFILE}"
 
-    # No entitlements file in v1.
-    #
-    # The Game Center entitlement creates a gameCenterDetail on the app, and an
-    # app with Game Center config that has never been published cannot have its
-    # version added to a review submission. The API reports only "not in valid
-    # state" and will not say which resource. The app that shipped an hour ago
-    # from this same account differs from this one in exactly one way: it has no
-    # Game Center. Leaderboards return in 1.1, published properly first.
+    # Game Center history: an app with Game Center config that had never been
+    # published could not have its version added to a review submission, so 1.0
+    # shipped without it. The app is published now; 1.2 adds the leaderboards.
 
     info:
       path: Resources/Info.plist
@@ -82,9 +91,45 @@ targets:
         # No custom cryptography. Declared in the build so an upload never parks
         # in "Missing Compliance" waiting on a form.
         ITSAppUsesNonExemptEncryption: false
+        # clearthestrait://daily, ://season, ://club: widgets, notifications and In-App Events.
+        CFBundleURLTypes:
+          - CFBundleURLName: com.mattbusel.clearthestrait
+            CFBundleURLSchemes:
+              - clearthestrait
         # Deliberately absent: no camera, no photo library, no location, no
         # microphone, no contacts. The game asks the player for nothing at all,
         # which makes both the first run and the privacy review short.
+
+  StraitWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: Widgets
+      - path: Sources/Shared
+      - path: Sources/Game/Rules.swift
+      - path: Sources/Game/Daily.swift
+      - path: Resources/PrivacyInfo.xcprivacy
+        buildPhase: resources
+    entitlements:
+      path: Widgets/StraitWidgets.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.mattbusel.clearthestrait
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.mattbusel.clearthestrait.widgets
+        PRODUCT_NAME: StraitWidgets
+        PROVISIONING_PROFILE_SPECIFIER: "${EXT_PROFILE}"
+        TARGETED_DEVICE_FAMILY: "1"
+        SKIP_INSTALL: YES
+    info:
+      path: Widgets/Info.plist
+      properties:
+        CFBundleDisplayName: Clear the Strait
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
 
   ClearTheStraitTests:
     type: bundle.unit-test

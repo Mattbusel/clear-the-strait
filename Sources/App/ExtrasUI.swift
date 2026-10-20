@@ -106,7 +106,8 @@ struct DailyCard: View {
 
     var status: String {
         if progress.career.dailyWon { return "Best today \(Int(progress.career.dailyBest).formatted()) m. Keep it to beat on any round." }
-        if progress.hasFreeAttempt { return "1 free try today. \(progress.daily.condition.line)" }
+        if progress.isClub && !progress.hasFreeAttempt { return "Unlimited tries with the Club. \(progress.daily.condition.line)" }
+        if progress.hasFreeAttempt { return "1 try today. \(progress.daily.condition.line)" }
         if progress.career.retries > 0 { return "\(progress.career.retries) retr\(progress.career.retries == 1 ? "y" : "ies") left. Tap to go again." }
         return "Out of tries today. Tap for retries."
     }
@@ -119,6 +120,7 @@ struct RetrySheet: View {
     @ObservedObject var extras: Extras
     @ObservedObject var progress: Logbook
     var onRetry: () -> Void
+    var onClub: () -> Void = {}
     @Environment(\.dismiss) private var dismiss
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -138,6 +140,23 @@ struct RetrySheet: View {
                         }
                         Spacer()
                         PriceButton(extras: extras, id: Extras.retriesID)
+                    }
+                }
+                .padding(.horizontal, 20)
+                Panel {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("STRAIT CLUB").font(.system(size: 17, weight: .black, design: .rounded)).foregroundStyle(UI.foam)
+                            Text("Unlimited retries every day, plus a new season of goals each month.")
+                                .font(.system(size: 12, weight: .semibold, design: .rounded)).foregroundStyle(UI.foam.opacity(0.8))
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        Spacer()
+                        Button(action: onClub) {
+                            Image(systemName: "crown.fill").font(.system(size: 15, weight: .black)).foregroundStyle(UI.ink)
+                                .padding(.horizontal, 14).padding(.vertical, 9).background(Capsule().fill(UI.sun))
+                        }
+                        .accessibilityLabel("See the Strait Club")
                     }
                 }
                 .padding(.horizontal, 20)
@@ -162,7 +181,10 @@ struct RetrySheet: View {
 struct LockerSheet: View {
     @ObservedObject var progress: Logbook
     @ObservedObject var extras: Extras
+    @ObservedObject var club: Club
+    var onClub: () -> Void = {}
     @Environment(\.dismiss) private var dismiss
+    @State private var reminders = Reminders.isOn
     @State private var tab = 0
     @State private var icon = AltIcon.allCases.first { $0.asset == UIApplication.shared.alternateIconName } ?? .classic
 
@@ -251,6 +273,42 @@ struct LockerSheet: View {
             }
             Kicker("LAST FOUR WEEKS OF DAILY STRAITS")
             Panel { DailyCalendar(won: Set(c.wonDays)) }
+            if !c.seasonBadges.isEmpty {
+                Kicker("SEASONS FINISHED")
+                Panel {
+                    VStack(alignment: .leading, spacing: 6) {
+                        ForEach(c.seasonBadges, id: \.self) { m in
+                            let s = Season.of(m)
+                            Label("SEASON \(s.number)  ·  \(s.title.uppercased())  ·  \(s.monthName)", systemImage: "star.circle.fill")
+                                .font(.system(size: 13, weight: .black, design: .rounded)).foregroundStyle(UI.sun)
+                        }
+                    }
+                }
+            }
+            Kicker("SETTINGS")
+            Panel {
+                VStack(alignment: .leading, spacing: 12) {
+                    Toggle(isOn: $reminders) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("DAILY REMINDER").font(.system(size: 14, weight: .black, design: .rounded)).foregroundStyle(UI.foam)
+                            Text("A note at 6 PM naming the day's strait, if you have not beaten it yet.")
+                                .font(.system(size: 11, weight: .semibold, design: .rounded)).foregroundStyle(UI.foam.opacity(0.7))
+                        }
+                    }
+                    .tint(UI.sun)
+                    .onChange(of: reminders) { _, on in
+                        if on {
+                            Task { reminders = await Reminders.turnOn(streak: c.streak, wonToday: c.dailyWon) }
+                        } else {
+                            Reminders.turnOff()
+                        }
+                    }
+                    Button { GameCenter.shared.show(.achievements) } label: {
+                        Label("GAME CENTER ACHIEVEMENTS", systemImage: "gamecontroller.fill")
+                            .font(.system(size: 13, weight: .black, design: .rounded)).foregroundStyle(UI.sun)
+                    }
+                }
+            }
         }
     }
 
@@ -267,7 +325,7 @@ struct LockerSheet: View {
         VStack(alignment: .leading, spacing: 10) {
             Kicker("WHAT HE LEAVES BEHIND IN FLIGHT")
             ForEach(TrailStyle.allCases) { t in
-                let ok = progress.ownsTrail(t, pack: extras.ownsTrails)
+                let ok = progress.ownsTrail(t, pack: extras.ownsTrails || club.isMember)
                 let on = progress.trail == t
                 Button {
                     if ok { progress.setTrail(t); Haptics.pop() }
@@ -276,7 +334,7 @@ struct LockerSheet: View {
                         TrailSwatch(style: t).frame(width: 64, height: 36)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(t.name.uppercased()).font(.system(size: 15, weight: .black, design: .rounded)).foregroundStyle(UI.foam)
-                            Text(ok ? (on ? "In use" : "Tap to use") : t.isPaid ? "Trail Pack" : "Earn: \(t.medal?.name ?? "")")
+                            Text(ok ? (on ? "In use" : "Tap to use") : t.isPaid ? "Trail Pack or Strait Club" : "Earn: \(t.medal?.name ?? "")")
                                 .font(.system(size: 12, weight: .semibold, design: .rounded)).foregroundStyle(UI.foam.opacity(0.7))
                         }
                         Spacer()
@@ -288,7 +346,7 @@ struct LockerSheet: View {
                 }
                 .buttonStyle(.plain)
             }
-            if !extras.ownsTrails {
+            if !extras.ownsTrails && !club.isMember {
                 Panel(tint: UI.sun) {
                     HStack {
                         VStack(alignment: .leading, spacing: 3) {
@@ -306,6 +364,24 @@ struct LockerSheet: View {
     private var shop: some View {
         let c = progress.career
         return VStack(alignment: .leading, spacing: 10) {
+            Button(action: onClub) {
+                HStack(spacing: 12) {
+                    Image(systemName: "crown.fill").font(.system(size: 18, weight: .black)).foregroundStyle(UI.ink)
+                        .frame(width: 42, height: 42).background(RoundedRectangle(cornerRadius: 12).fill(UI.sun))
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(club.isMember ? "STRAIT CLUB  ·  MEMBER" : "STRAIT CLUB").font(.system(size: 15, weight: .black, design: .rounded)).foregroundStyle(UI.foam)
+                        Text("All four blowhards, every trail and icon, unlimited retries and postcards, and a new season every month.")
+                            .font(.system(size: 12, weight: .semibold, design: .rounded)).foregroundStyle(UI.foam.opacity(0.8))
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    Spacer(minLength: 4)
+                    Image(systemName: "chevron.right").font(.system(size: 14, weight: .black)).foregroundStyle(UI.sun)
+                }
+                .padding(14)
+                .background(RoundedRectangle(cornerRadius: 22, style: .continuous).fill(UI.sun.opacity(0.14))
+                    .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(UI.sun.opacity(0.6), lineWidth: 2)))
+            }
+            .buttonStyle(.plain)
             Kicker("TOP-UPS  ·  BUY AS OFTEN AS YOU LIKE")
             item("arrow.counterclockwise", "3 DAILY RETRIES", "Three more goes at the Daily Strait. Unused ones carry over. You have \(c.retries).", Extras.retriesID)
             item("shield.lefthalf.filled", "2 STREAK SHIELDS", "Each covers a missed day so your daily streak survives. One free every month. You have \(c.shields).", Extras.shieldsID)
@@ -316,7 +392,7 @@ struct LockerSheet: View {
             } else {
                 item("sparkles", "TRAIL PACK", "Rainbow, Fireworks and Confetti trails when he flies.", Extras.trailsID)
             }
-            if extras.ownsIcons {
+            if extras.ownsIcons || club.isMember {
                 Panel {
                     VStack(alignment: .leading, spacing: 10) {
                         Text("APP ICON").font(.system(size: 15, weight: .black, design: .rounded)).foregroundStyle(UI.sun)
@@ -399,6 +475,7 @@ struct TrailSwatch: View {
                 case .comet: c = Color(red: 1, green: 0.9, blue: 0.55)
                 case .gold: c = UI.sun
                 case .rainbow, .fireworks, .confetti: c = colours[i % colours.count]
+                case .stars: c = i % 2 == 0 ? UI.sun : UI.foam
                 }
                 let rect = CGRect(x: x - r, y: y - r, width: r * 2, height: r * (style == .rainbow ? 1 : 2))
                 ctx.fill(style == .confetti ? Path(rect) : Path(ellipseIn: rect), with: .color(c.opacity(1 - Double(i) * 0.08)))

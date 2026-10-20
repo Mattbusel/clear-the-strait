@@ -59,7 +59,7 @@ final class DailyTests: XCTestCase {
         let r = RoundResult(clearSeconds: 45, launchMetres: 120_000, maxComboCount: 31,
                             maxComboTier: .tremendous, maxEgoPercent: 230, shipsFreed: 30, bubblesPopped: 16)
         let got = Set(Medal.earned(by: r, rounds: 10, dailyWon: true, streak: 7))
-        XCTAssertEqual(got, Set(Medal.all.map(\.id)).subtracting(["rounds50"]))
+        XCTAssertEqual(got, Set(Medal.all.map(\.id)).subtracting(["rounds50", "season"]))
         for t in TrailStyle.allCases where !t.isPaid && t != .spray {
             XCTAssertNotNil(t.medal, "\(t.name) has no way to earn it")
         }

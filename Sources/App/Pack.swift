@@ -109,6 +109,7 @@ struct CastPicker: View {
 
 struct PackSheet: View {
     @ObservedObject var store: PackStore
+    var onClub: () -> Void = {}
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -151,6 +152,19 @@ struct PackSheet: View {
 
                     buyArea
                         .padding(.top, 20)
+
+                    if !store.owned {
+                        Button(action: onClub) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "crown.fill")
+                                Text("OR PLAY ALL FOUR WITH THE STRAIT CLUB")
+                            }
+                            .font(.system(size: 12, weight: .black, design: .rounded)).kerning(0.6).foregroundStyle(UI.sun)
+                            .padding(.horizontal, 14).padding(.vertical, 8)
+                            .background(Capsule().stroke(UI.sun.opacity(0.8), lineWidth: 2))
+                        }
+                        .padding(.top, 14)
+                    }
 
                     Text("One purchase, yours for good. The base game stays free, with no adverts.")
                         .font(.system(size: 12, weight: .semibold, design: .rounded))

@@ -44,6 +44,9 @@ enum Goal: Equatable {
         }
     }
 
+    /// "Launch him 15,000 m", for notifications and widgets.
+    var sentence: String { String(text.prefix(1)) + text.dropFirst().lowercased() }
+
     func isMet(by r: RoundResult) -> Bool {
         switch self {
         case .launch(let m): return r.launchMetres >= Double(m)
@@ -127,9 +130,11 @@ struct Medal: Identifiable, Equatable {
         Medal(id: "rounds50", name: "Old Salt", detail: "Clear 50 straits.", symbol: "50.circle.fill", unlocks: nil),
         Medal(id: "daily", name: "Daily Driver", detail: "Beat a Daily Strait.", symbol: "calendar", unlocks: nil),
         Medal(id: "streak7", name: "Week Streak", detail: "Beat the Daily Strait 7 days running.", symbol: "flame.fill", unlocks: nil),
+        Medal(id: "season", name: "Full Season", detail: "Finish all ten goals of a Club Season.", symbol: "star.circle.fill", unlocks: .stars),
     ]
 
-    /// Medals a finished round earns, given career totals after it.
+    /// Medals a finished round earns, given career totals after it. The season
+    /// medal is not decided by a round alone; the Logbook adds it.
     static func earned(by r: RoundResult, rounds: Int, dailyWon: Bool, streak: Int) -> [String] {
         var out: [String] = ["first"]
         if r.maxComboCount >= 15 { out.append("combo15") }
@@ -150,7 +155,7 @@ struct Medal: Identifiable, Equatable {
 
 /// What streams behind him once he is airborne.
 enum TrailStyle: String, CaseIterable, Identifiable {
-    case spray, smoke, comet, gold, rainbow, fireworks, confetti
+    case spray, smoke, comet, gold, rainbow, fireworks, confetti, stars
     var id: String { rawValue }
 
     var name: String {
@@ -162,6 +167,7 @@ enum TrailStyle: String, CaseIterable, Identifiable {
         case .rainbow: return "Rainbow"
         case .fireworks: return "Fireworks"
         case .confetti: return "Confetti"
+        case .stars: return "Season Stars"
         }
     }
 
