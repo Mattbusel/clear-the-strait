@@ -16,7 +16,7 @@ import asc  # noqa: E402
 APP = "6810644510"
 EVENTS = [
     {"key": "season", "ref": "Club Season premiere (Nov 2026)", "badge": "PREMIERE", "deepLink": "clearthestrait://season",
-     "purchaseRequirement": "SUBSCRIPTION", "purpose": "KEEP_ACTIVE_USERS_INFORMED", "priority": "HIGH",
+     "purchaseRequirement": "IN_APP_PURCHASE_OR_SUBSCRIPTION", "purpose": "KEEP_ACTIVE_USERS_INFORMED", "priority": "HIGH",
      "schedule": {"publishStart": "2026-10-25T16:00:00Z", "eventStart": "2026-11-01T04:00:00Z", "eventEnd": "2026-12-01T04:59:00Z"},
      "copy": {"en-US": ("The Club Season Premieres", "A new mode: ten goals across every channel",
                         "New in 1.2: ten goals through all four channels, harder as you go. Finish them for the Full Season medal.")}},
@@ -51,7 +51,7 @@ def run(media: Path, dry: bool):
         ev = have.get(e["ref"])
         if not ev:
             made = asc.call("POST", "/v1/appEvents", {"data": {"type": "appEvents", "attributes": {
-                "referenceName": e["ref"], "badge": e["badge"], "deepLink": e["deepLink"], "purchaseRequirement": e["purchaseRequirement"],
+                "referenceName": e["ref"], "badge": e["badge"], "deepLink": e["deepLink"], "purchaseRequirement": "IN_APP_PURCHASE" if e["key"] == "season" else "NO_COST_ASSOCIATED",
                 "primaryLocale": "en-US", "priority": e["priority"], "purpose": e["purpose"],
                 "territorySchedules": [dict(territories=terr, **e["schedule"])]},
                 "relationships": {"app": {"data": {"type": "apps", "id": APP}}}}})
