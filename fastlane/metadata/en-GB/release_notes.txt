@@ -1,0 +1,13 @@
+The biggest update yet.
+
+- The Club Season: ten new goals every month across every channel, with a Full Season medal and the Season Stars trail
+- The Daily Strait: a new challenge every day, the same for everyone, with a streak to build and an optional evening reminder
+- Game Center: Longest Launch, Fastest Clear and a daily leaderboard, plus 14 achievements
+- Widgets for the Home Screen and Lock Screen, a Control Centre button and a Siri shortcut for the Daily Strait
+- 14 medals, launch trails that unlock with them, and the Locker with records for every blowhard
+- Postcards of your launches to share
+- Your first rounds now show you how to play as you go
+- The Strait Club, an optional subscription: all four blowhards, the full season, unlimited daily retries and postcards, three Streak Shields a month, every trail and icon
+- Fixed: replaying an already-beaten Daily Strait no longer uses up a retry
+
+Your best launch, best time and the Blowhard Pack carry over.

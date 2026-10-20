@@ -1,0 +1,320 @@
+{
+ "en-GB": {
+  "club_group_name": "Strait Club",
+  "club_monthly": {
+   "name": "Strait Club (Monthly)",
+   "description": "Every blowhard and a new season each month."
+  },
+  "club_yearly": {
+   "name": "Strait Club (Yearly)",
+   "description": "Every blowhard, every season, all year."
+  }
+ },
+ "en-AU": {
+  "club_group_name": "Strait Club",
+  "club_monthly": {
+   "name": "Strait Club (Monthly)",
+   "description": "Every blowhard and a new season each month."
+  },
+  "club_yearly": {
+   "name": "Strait Club (Yearly)",
+   "description": "Every blowhard, every season, all year."
+  }
+ },
+ "en-CA": {
+  "club_group_name": "Strait Club",
+  "club_monthly": {
+   "name": "Strait Club (Monthly)",
+   "description": "Every blowhard and a new season each month."
+  },
+  "club_yearly": {
+   "name": "Strait Club (Yearly)",
+   "description": "Every blowhard, every season, all year."
+  }
+ },
+ "es-ES": {
+  "club_group_name": "Strait Club",
+  "club_monthly": {
+   "name": "Strait Club (Mensual)",
+   "description": "Cada fanfarrón y una temporada nueva al mes."
+  },
+  "club_yearly": {
+   "name": "Strait Club (Anual)",
+   "description": "Cada fanfarrón y cada temporada, todo el año."
+  }
+ },
+ "es-MX": {
+  "club_group_name": "Strait Club",
+  "club_monthly": {
+   "name": "Strait Club (Mensual)",
+   "description": "Cada fanfarrón y una temporada nueva al mes."
+  },
+  "club_yearly": {
+   "name": "Strait Club (Anual)",
+   "description": "Cada fanfarrón y cada temporada, todo el año."
+  }
+ },
+ "de-DE": {
+  "club_group_name": "Strait Club",
+  "club_monthly": {
+   "name": "Strait Club (Monatlich)",
+   "description": "Jedes Großmaul und jeden Monat eine Season."
+  },
+  "club_yearly": {
+   "name": "Strait Club (Jährlich)",
+   "description": "Jedes Großmaul, jede Season, das ganze Jahr."
+  }
+ },
+ "fr-FR": {
+  "club_group_name": "Strait Club",
+  "club_monthly": {
+   "name": "Strait Club (Mensuel)",
+   "description": "Tous les fanfarons et une saison par mois."
+  },
+  "club_yearly": {
+   "name": "Strait Club (Annuel)",
+   "description": "Les fanfarons et les saisons, toute l'année."
+  }
+ },
+ "pt-BR": {
+  "club_group_name": "Strait Club",
+  "club_monthly": {
+   "name": "Strait Club (Mensal)",
+   "description": "Todos os fanfarrões e uma temporada por mês."
+  },
+  "club_yearly": {
+   "name": "Strait Club (Anual)",
+   "description": "Cada fanfarrão, cada temporada, o ano todo."
+  }
+ },
+ "it": {
+  "club_group_name": "Strait Club",
+  "club_monthly": {
+   "name": "Strait Club (Mensile)",
+   "description": "Ogni sbruffone e una nuova stagione al mese."
+  },
+  "club_yearly": {
+   "name": "Strait Club (Annuale)",
+   "description": "Ogni sbruffone, ogni stagione, tutto l'anno."
+  }
+ },
+ "ja": {
+  "club_group_name": "Strait Club",
+  "club_monthly": {
+   "name": "Strait Club(月額)",
+   "description": "ほら吹き全員と、毎月の新しいシーズン。"
+  },
+  "club_yearly": {
+   "name": "Strait Club(年額)",
+   "description": "ほら吹き全員、全シーズン、1年中。"
+  },
+  "captions": [
+   [
+    "play-22",
+    "航路から<br>押し出せ。",
+    "彼の揺れに合わせてタップ。まずは<b>エゴを割れ。</b>",
+    ""
+   ],
+   [
+    "launch-c",
+    "そして海の上を<br>跳ねさせろ。",
+    "リズムが良いほど<b>遠くまで飛ぶ。</b>",
+    ""
+   ],
+   [
+    "title",
+    "毎日、<br>新しい海峡。",
+    "Daily Strait:<b>全員共通の目標</b>で連続記録を伸ばそう。",
+    ""
+   ],
+   [
+    "season",
+    "毎月<br>10個の目標。",
+    "<b>Club Season</b>:全航路で、後半ほど難しく。",
+    "STRAIT CLUB"
+   ],
+   [
+    "widgets",
+    "連続記録を<br>ロック画面に。",
+    "ウィジェット、<b>コントロールセンターのボタン</b>、Siri。",
+    ""
+   ],
+   [
+    "play-tycoon",
+    "ほら吹き4人。<br>航路も4つ。",
+    "それぞれに<b>独自のひねり。</b>",
+    "アプリ内課金"
+   ],
+   [
+    "locker",
+    "集めるメダルは<br>14種類。",
+    "Clearedから<b>Moonshotまで。</b>",
+    ""
+   ],
+   [
+    "result",
+    "すべての発射を<br>記録に。",
+    "メダル、自己ベスト、<b>Game Centerのリーダーボード。</b>",
+    ""
+   ],
+   [
+    "trails",
+    "飛行に<br>トレイルを。",
+    "メダルで獲得。全シーズン制覇で<b>Season Stars。</b>",
+    "アプリ内課金あり"
+   ],
+   [
+    "club",
+    "Strait Clubに<br>入ろう。",
+    "ほら吹き4人、全シーズン、<b>再挑戦し放題。</b>",
+    "アプリ内課金"
+   ]
+  ]
+ },
+ "ko": {
+  "club_group_name": "Strait Club",
+  "club_monthly": {
+   "name": "Strait Club (월간)",
+   "description": "모든 허풍쟁이와 매달 새로운 시즌."
+  },
+  "club_yearly": {
+   "name": "Strait Club (연간)",
+   "description": "모든 허풍쟁이, 모든 시즌, 1년 내내."
+  },
+  "captions": [
+   [
+    "play-22",
+    "해협 밖으로<br>밀어내세요.",
+    "흔들림에 맞춰 탭. 먼저 <b>자존심을 터뜨리세요.</b>",
+    ""
+   ],
+   [
+    "launch-c",
+    "그리고 멀리<br>날려 보내세요.",
+    "리듬이 좋을수록 <b>더 멀리 날아갑니다.</b>",
+    ""
+   ],
+   [
+    "title",
+    "매일 새로운<br>해협.",
+    "Daily Strait: <b>모두에게 같은 목표</b>, 쌓아 가는 연속 기록.",
+    ""
+   ],
+   [
+    "season",
+    "매달<br>10개의 목표.",
+    "<b>Club Season</b>: 모든 해협, 갈수록 어렵게.",
+    "STRAIT CLUB"
+   ],
+   [
+    "widgets",
+    "잠금 화면에<br>연속 기록을.",
+    "위젯, <b>제어 센터 버튼</b>, Siri까지.",
+    ""
+   ],
+   [
+    "play-tycoon",
+    "허풍쟁이 4명.<br>해협 4곳.",
+    "각자 <b>자기만의 반전.</b>",
+    "앱 내 구입"
+   ],
+   [
+    "locker",
+    "모을 메달<br>14개.",
+    "Cleared부터 <b>Moonshot까지.</b>",
+    ""
+   ],
+   [
+    "result",
+    "모든 발사를<br>기록으로.",
+    "메달, 최고 기록, <b>Game Center 리더보드.</b>",
+    ""
+   ],
+   [
+    "trails",
+    "비행을 위한<br>트레일.",
+    "메달로 획득. 시즌을 완주하면 <b>Season Stars.</b>",
+    "앱 내 구입 포함"
+   ],
+   [
+    "club",
+    "Strait Club에<br>가입하세요.",
+    "허풍쟁이 4명, 모든 시즌, <b>재도전 무제한.</b>",
+    "앱 내 구입"
+   ]
+  ]
+ },
+ "zh-Hans": {
+  "club_group_name": "Strait Club",
+  "club_monthly": {
+   "name": "Strait Club(按月)",
+   "description": "所有吹牛大王,每月一个新赛季。"
+  },
+  "club_yearly": {
+   "name": "Strait Club(按年)",
+   "description": "所有吹牛大王,所有赛季,全年畅玩。"
+  },
+  "captions": [
+   [
+    "play-22",
+    "把他推出<br>海峡。",
+    "跟着他的晃动点击。先<b>戳破他的自负。</b>",
+    ""
+   ],
+   [
+    "launch-c",
+    "再让他<br>一路弹飞。",
+    "节奏越好,<b>飞得越远。</b>",
+    ""
+   ],
+   [
+    "title",
+    "每天<br>一个新海峡。",
+    "Daily Strait:<b>所有人同一个目标</b>,连胜越攒越长。",
+    ""
+   ],
+   [
+    "season",
+    "每月<br>十个目标。",
+    "<b>Club Season</b>:覆盖所有航道,越往后越难。",
+    "STRAIT CLUB"
+   ],
+   [
+    "widgets",
+    "连胜纪录<br>放上锁定屏幕。",
+    "小组件、<b>控制中心按钮</b>和 Siri。",
+    ""
+   ],
+   [
+    "play-tycoon",
+    "四个吹牛大王。<br>四条航道。",
+    "每个都有<b>自己的花样。</b>",
+    "App 内购买"
+   ],
+   [
+    "locker",
+    "14 枚奖牌<br>等你拿。",
+    "从 Cleared 到 <b>Moonshot。</b>",
+    ""
+   ],
+   [
+    "result",
+    "每次发射<br>都有纪录。",
+    "奖牌、最佳成绩和 <b>Game Center 排行榜。</b>",
+    ""
+   ],
+   [
+    "trails",
+    "为飞行<br>加上尾迹。",
+    "靠奖牌赢取。完成整个赛季得 <b>Season Stars。</b>",
+    "含 App 内购买"
+   ],
+   [
+    "club",
+    "加入<br>Strait Club。",
+    "四个吹牛大王、每个赛季、<b>无限重试。</b>",
+    "App 内购买"
+   ]
+  ]
+ }
+}

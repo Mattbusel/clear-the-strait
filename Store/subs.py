@@ -212,6 +212,30 @@ def promo(kind, png):
     print(kind, "promo image", "uploaded" if ok else "FAILED")
 
 
+def l10n():
+    """Group and plan localizations for every store locale, from Store/l10n.json."""
+    import json
+    data = json.loads((Path(__file__).resolve().parent / "l10n.json").read_text(encoding="utf-8"))
+    g = group()
+    glocs = {l["attributes"]["locale"]: l for l in (asc.call("GET", f"/v1/subscriptionGroups/{g['id']}/subscriptionGroupLocalizations") or {"data": []})["data"]}
+    for loc, d in data.items():
+        if loc not in glocs:
+            r = asc.call("POST", "/v1/subscriptionGroupLocalizations", {"data": {"type": "subscriptionGroupLocalizations",
+                         "attributes": {"locale": loc, "name": d["club_group_name"]},
+                         "relationships": {"subscriptionGroup": {"data": {"type": "subscriptionGroups", "id": g["id"]}}}}})
+            print("group", loc, "ok" if r else "FAILED")
+    for pid, sub in plans(g["id"]).items():
+        kind = "club_yearly" if pid.endswith("yearly") else "club_monthly"
+        have = {l["attributes"]["locale"] for l in (asc.call("GET", f"/v1/subscriptions/{sub['id']}/subscriptionLocalizations") or {"data": []})["data"]}
+        for loc, d in data.items():
+            if loc in have:
+                continue
+            r = asc.call("POST", "/v1/subscriptionLocalizations", {"data": {"type": "subscriptionLocalizations",
+                         "attributes": {"locale": loc, "name": d[kind]["name"], "description": d[kind]["description"]},
+                         "relationships": {"subscription": {"data": {"type": "subscriptions", "id": sub["id"]}}}}})
+            print(pid[-7:], loc, "ok" if r else "FAILED")
+
+
 def status():
     g = group()
     print("group", g["id"], g["attributes"])
@@ -257,4 +281,4 @@ if __name__ == "__main__":
     elif cmd == "promo":
         promo(sys.argv[2], sys.argv[3])
     else:
-        {"create": create, "status": status, "offercode": offercode}.get(cmd, lambda: sys.exit(__doc__))()
+        {"create": create, "status": status, "offercode": offercode, "l10n": l10n}.get(cmd, lambda: sys.exit(__doc__))()

@@ -13,26 +13,47 @@
 回报
 攒够了势头,他就会从航道里"啵"地弹出来,像沙滩球一样在海面上一路弹跳,嘴里还说个不停,距离计数器一路飙升。故意让他膨胀,他能飞得更远,前提是你还推得动他。
 
-新内容:每日海峡
-每天一个新挑战,所有人都一样:一个条件(Fog Bank、Big Lunch、Hot Air、Echo Canyon……)和一个要超越的目标。天天过关,积累连胜。每天一次免费挑战,自由模式永远不限次数。
+Daily Strait(每日海峡)
+每天一个新挑战,所有人都一样:一个条件(Fog Bank、Big Lunch、Hot Air、Echo Canyon……)和一个要超越的目标。天天过关,积累连胜。打开每日提醒,每天晚上告诉你今天的海峡是什么。
 
-新内容:奖牌、尾迹和储物柜
-- 13 枚奖牌等你拿,从 Cleared 到 Moonshot(把他发射 100,000 米)
+新内容:Club Season
+每月十个目标,所有人都一样,覆盖所有航道,越到月底越难。前三个人人都能玩。十个全部完成,就能拿到 Full Season 奖牌和 Season Stars 尾迹。
+
+新内容:Game Center
+- 排行榜:Longest Launch(最远发射)、Fastest Clear(最快通关),以及今日海峡的每日榜
+- 14 项成就,每枚奖牌对应一项
+
+新内容:小组件
+主屏幕和锁定屏幕小组件,显示今天的海峡和你的连胜,还有控制中心按钮和 Siri 快捷指令。
+
+奖牌、尾迹和储物柜
+- 14 枚奖牌等你拿,从 Cleared 到 Moonshot(把他发射 100,000 米)
 - 飞行时拖在他身后的发射尾迹,靠奖牌赢取
 - 每个吹牛大王的纪录、你的最长连胜,以及本月每日挑战的日历
-- 把你最远的发射做成明信片发给朋友(第一张免费)
+- 把你最远的发射做成 Postcards(明信片)发给朋友
 
-可选附加内容
-以上全部免费。如果你想要更多:
-- Blowhard Pack:再来三个吹牛大王,各有自己的航道和独特玩法
-- Daily Retries(每日重试)、Streak Shields(连胜护盾)和 Postcards(明信片),小额补充
-- Trail Pack(Rainbow、Fireworks、Confetti)和 Icon Pack,一次购买,永久拥有
-没有开箱,没有随机:每一项都写清楚你会得到什么。
+Strait Club(可选订阅)
+- 全部四个吹牛大王:the Windbag(话痨)、the Tycoon(大亨)和 the Mayor(镇长),各有自己的航道
+- 每月 Club Season 的全部十个目标
+- 无限次 Daily Strait 重试(Daily Retries)和无限 Postcards
+- 每月三个 Streak Shields(连胜护盾)
+- 全部尾迹和全部 App 图标
+方案:Strait Club Monthly(按月)或 Strait Club Yearly(按年)。年度方案为新订阅用户提供一周免费试用。价格会以当地货币显示在 App 内和 App Store 中。
 
-这里没有的
-没有账户,无需注册,没有广告,没有订阅,不需要联网。不收集任何关于你的信息。
+其他可选内容
+- Blowhard Pack:额外三个吹牛大王,一次购买,永久拥有
+- Daily Retries、Streak Shields 和 Postcards,小额补充
+- Trail Pack 和 Icon Pack,一次购买,永久拥有
+没有开箱,没有随机:每一项都写清楚你会得到什么。无论是否加入 Club,你买下的东西都归你所有。如果你在 Clear the Strait 还是付费 App 时购买过它,Blowhard Pack 已经是你的了。
+
+订阅条款
+确认购买时,费用将从你的 Apple 账户中扣除。除非在当前周期结束前至少 24 小时取消,订阅将以相同价格和周期自动续订,续订费用会在当前周期结束前 24 小时内扣除。你可以随时在 Apple 账户设置中管理或取消订阅。订阅后,免费试用中未使用的部分将失效。
+使用条款(EULA):https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+隐私政策:https://tensorust.com/apps/clear-the-strait/privacy/
+
+没有账户,没有广告,不联网也能玩。不收集任何关于你的信息。
 
 关于讽刺
-游戏中的角色都是根据常见类型(自命不凡的公众人物、夸夸其谈的人、大亨、小镇镇长)原创的卡通形象,场景也是虚构的。没有描绘或提及任何真实人物,也没有引用任何人真正说过的话。没有人受到伤害:你只是把一个卡通球推开而已。
+游戏中的角色都是根据常见类型(自命不凡的公众人物、夸夸其谈的人、大亨、小镇镇长)原创的卡通形象,场景也是虚构的。没有描绘或提及任何真实人物,也没有引用任何人真正说过的话。
 
 ※ 目前 App 内界面为英文。

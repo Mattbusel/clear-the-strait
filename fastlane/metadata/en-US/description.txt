@@ -2,7 +2,7 @@ An enormous, extremely round, extremely pleased-with-himself cartoon politician 
 
 That somebody is you, and your only tool is shoving.
 
-FREE TO PLAY. NO ADVERTS.
+Free to play. No adverts.
 
 HOW IT WORKS
 Tap the left of him to shove him right, the right to shove him left. Shove in time with the way he is already rocking and the combo climbs: GOOD, GREAT, PERFECT, TREMENDOUS. Mash at random and you fight your own momentum.
@@ -13,24 +13,44 @@ Every few seconds he announces how tremendous he is, and the compliment floats o
 THE PAYOFF
 Build enough momentum and he pops out of the channel and skips across open water like a beach ball, still talking, while the distance counter climbs. Let him inflate on purpose and he flies further, if you can still budge him.
 
-NEW: THE DAILY STRAIT
-A fresh challenge every day, the same for everyone: a condition (Fog Bank, Big Lunch, Hot Air, Echo Canyon...) and a goal to beat. Beat it day after day to build a streak. One free try a day, and free play is always unlimited.
+THE DAILY STRAIT
+A fresh challenge every day, the same for everyone: a condition (Fog Bank, Big Lunch, Hot Air, Echo Canyon...) and a goal to beat. Beat it day after day to build a streak. Turn on the daily reminder and it tells you each evening what the day's strait is.
 
-NEW: MEDALS, TRAILS AND THE LOCKER
-- 13 medals to earn, from Cleared to Moonshot (launch him 100,000 m)
+NEW: THE CLUB SEASON
+Ten goals every month, the same for everyone, across every channel, getting harder as the month goes on. The first three are open to all. Finish all ten for the Full Season medal and the Season Stars trail.
+
+NEW: GAME CENTER
+- Leaderboards: Longest Launch, Fastest Clear, and a daily board for today's strait
+- 14 achievements, one for every medal
+
+NEW: WIDGETS
+Home Screen and Lock Screen widgets with today's strait and your streak, plus a Control Center button and a Siri shortcut.
+
+MEDALS, TRAILS AND THE LOCKER
+- 14 medals to earn, from Cleared to Moonshot (launch him 100,000 m)
 - Launch trails that stream behind him in flight, earned with medals
 - Records for every blowhard, your best streak and a calendar of the month's dailies
-- Postcards of your best launches to send round (the first one is free)
+- Postcards of your best launches to send round
 
-OPTIONAL EXTRAS
-Everything above is free. If you want more:
-- The Blowhard Pack: three more blowhards, each in his own channel with his own twist
+THE STRAIT CLUB (OPTIONAL SUBSCRIPTION)
+- All four blowhards: the Windbag, the Tycoon and the Mayor, each in his own channel
+- All ten goals of every monthly Club Season
+- Unlimited Daily Strait retries and unlimited postcards
+- Three Streak Shields every month
+- Every trail and every app icon
+Plans: Strait Club Monthly, $2.99 a month, or Strait Club Yearly, $14.99 a year with a one-week free trial for new subscribers. Prices are in US dollars and vary by country.
+
+OTHER OPTIONAL EXTRAS
+- The Blowhard Pack: the three extra blowhards, yours for good with one purchase
 - Daily Retries, Streak Shields and Postcards, 99 cents a top-up
-- The Trail Pack (Rainbow, Fireworks, Confetti) and the Icon Pack, 99 cents each, yours for good
-No loot boxes, nothing random: every item says exactly what you get. If you bought Clear the Strait when it was a paid app, the Blowhard Pack is already yours.
+- The Trail Pack and the Icon Pack, 99 cents each, yours for good
+No loot boxes, nothing random: every item says exactly what you get. Anything you buy stays yours whether or not you join the Club. If you bought Clear the Strait when it was a paid app, the Blowhard Pack is already yours.
 
-WHAT IS NOT IN HERE
-No accounts, no sign-up, no adverts, no subscription, no internet connection required. Nothing is collected about you.
+SUBSCRIPTION TERMS
+Payment is charged to your Apple Account at confirmation of purchase. The subscription renews automatically at the same price and period unless it is cancelled at least 24 hours before the end of the current period, and your account is charged for renewal within 24 hours before the end of the current period. Manage or cancel any time in your Apple Account settings. Any unused part of a free trial ends when you subscribe.
+Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Privacy Policy: https://tensorust.com/apps/clear-the-strait/privacy/
 
-A NOTE ON THE SATIRE
-These are original cartoon caricatures of generic types (the self-important public figure, the windbag, the tycoon, the small-town mayor) in made-up places. No real person is portrayed or named, and nothing anyone has actually said is quoted. Nobody is harmed: you are rolling a cartoon ball out of the way.
+No accounts, no adverts, no internet connection needed to play. Nothing is collected about you.
+
+A NOTE ON THE SATIRE: original cartoon caricatures of generic types (the self-important public figure, the windbag, the tycoon, the small-town mayor) in made-up places. No real person is portrayed or quoted.
