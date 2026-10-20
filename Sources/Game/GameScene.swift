@@ -26,9 +26,16 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
 
     /// Who is stuck, which decides the channel and the twist.
     let who: Blowhard
+    /// The rules bend for this round: his own twist, or the Daily Strait's condition.
+    let twist: Twist
+    /// What streams behind him once he is out.
+    let trail: TrailStyle
+    private var bubblesPopped = 0
 
-    init(size: CGSize, who: Blowhard) {
+    init(size: CGSize, who: Blowhard, twist: Twist? = nil, trail: TrailStyle = .spray) {
         self.who = who
+        self.twist = twist ?? who.twist
+        self.trail = trail
         blocker = Blocker(who: who)
         super.init(size: size)
     }
@@ -209,9 +216,21 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         blocker.shove(direction: side.push, strength: strength, tier: tier)
 
         hud.flash(tier: tier, combo: combo)
+        if tier == .tremendous { flashScreen() }
         Haptics.tap(tier)
         Audio.shared.thump(tier: tier)
         spawnImpact(at: point, tier: tier)
+    }
+
+    /// A white blink for a TREMENDOUS shove, so the top tier lands in the eyes too.
+    private func flashScreen() {
+        let flash = SKShapeNode(rect: CGRect(origin: .zero, size: size))
+        flash.fillColor = .white
+        flash.strokeColor = .clear
+        flash.alpha = 0.22
+        flash.zPosition = 400
+        addChild(flash)
+        flash.run(.sequence([.fadeOut(withDuration: 0.18), .removeFromParent()]))
     }
 
     private func spawnImpact(at point: CGPoint, tier: ComboTier) {
@@ -305,12 +324,12 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         guard progress >= 1 || Loosening.mustEnd(elapsed: elapsed) else { return }
         // Breaking free always carries at least the full bar's worth, so a
         // round won on the meter launches as far as one won on raw momentum.
-        beginLaunch(momentum: max(momentum, Escape.threshold(ego: ego) * who.twist.escape))
+        beginLaunch(momentum: max(momentum, Escape.threshold(ego: ego) * twist.escape))
     }
 
     /// The momentum he has to clear right now.
     private var currentBar: Double {
-        Escape.threshold(ego: ego) * escapeScale * who.twist.escape * Loosening.relief(elapsed: elapsed)
+        Escape.threshold(ego: ego) * escapeScale * twist.escape * Loosening.relief(elapsed: elapsed)
     }
 
     private func beginLaunch(momentum: Double) {
@@ -318,7 +337,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         launchStarted = elapsed
         launchOrigin = blocker.position.x
 
-        let distance = (Escape.distance(momentum: momentum, ego: ego, comboBest: combo.best) * who.twist.launch).rounded()
+        let distance = (Escape.distance(momentum: momentum, ego: ego, comboBest: combo.best) * twist.launch).rounded()
         pendingDistance = distance
 
         // Everything at once: he pops out, the camera pulls back, the bubbles
@@ -340,6 +359,11 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         run(pull)
 
+        run(.repeat(.sequence([
+            .run { [weak self] in self?.dropTrail() },
+            .wait(forDuration: 0.045),
+        ]), count: 70), withKey: "trail")
+
         // Keep yelling on the way out. It is the payoff of the whole joke.
         run(.repeat(.sequence([
             .wait(forDuration: 0.55),
@@ -350,6 +374,75 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     }
 
     private var pendingDistance: Double = 0
+
+    /// One puff of the launch trail, left where he just was.
+    private func dropTrail() {
+        let at = CGPoint(x: blocker.position.x - blocker.radius * 0.6 * blocker.xScale,
+                         y: blocker.position.y + CGFloat.random(in: -10...10))
+        let rainbow: [SKColor] = [Palette.hull, Palette.hullAlt, Palette.land, Palette.shallow, Palette.suit, Palette.blush]
+        let node: SKShapeNode
+        var drift = CGVector(dx: -CGFloat.random(in: 20...60), dy: CGFloat.random(in: -20...20))
+        var life = 0.7
+        switch trail {
+        case .spray:
+            node = SKShapeNode(circleOfRadius: CGFloat.random(in: 3...7))
+            node.fillColor = Palette.foam
+        case .smoke:
+            node = SKShapeNode(circleOfRadius: CGFloat.random(in: 8...16))
+            node.fillColor = SKColor(white: 0.85, alpha: 0.7)
+            drift.dy += 30; life = 1.0
+        case .comet:
+            node = SKShapeNode(circleOfRadius: CGFloat.random(in: 5...10))
+            node.fillColor = SKColor(red: 1.0, green: 0.9, blue: 0.55, alpha: 1)
+            node.glowWidth = 6
+        case .gold:
+            node = SKShapeNode(ellipseOf: CGSize(width: 12, height: 12))
+            node.fillColor = Palette.hullAlt
+            node.strokeColor = Palette.hairEdge
+            node.lineWidth = 2
+            drift.dy -= 60
+        case .rainbow:
+            node = SKShapeNode(rectOf: CGSize(width: 22, height: 7), cornerRadius: 3.5)
+            node.fillColor = rainbow[Int(Date().timeIntervalSinceReferenceDate * 20) % rainbow.count]
+            drift = CGVector(dx: -10, dy: 0); life = 0.9
+        case .fireworks:
+            node = SKShapeNode(circleOfRadius: 3)
+            node.fillColor = rainbow.randomElement() ?? Palette.hullAlt
+            let a = CGFloat.random(in: 0 ... .pi * 2)
+            drift = CGVector(dx: cos(a) * 90, dy: sin(a) * 90)
+            node.glowWidth = 3
+        case .confetti:
+            node = SKShapeNode(rectOf: CGSize(width: 8, height: 4))
+            node.fillColor = rainbow.randomElement() ?? Palette.hull
+            node.zRotation = CGFloat.random(in: 0 ... .pi)
+            drift.dy -= 50
+        case .stars:
+            // A five-pointed star, gold and white, twinkling as it falls behind.
+            let star = CGMutablePath()
+            let outer: CGFloat = CGFloat.random(in: 7...11), inner = outer * 0.45
+            for k in 0..<10 {
+                let a = CGFloat(k) * .pi / 5 - .pi / 2
+                let r = k % 2 == 0 ? outer : inner
+                let pt = CGPoint(x: cos(a) * r, y: sin(a) * r)
+                if k == 0 { star.move(to: pt) } else { star.addLine(to: pt) }
+            }
+            star.closeSubpath()
+            node = SKShapeNode(path: star)
+            node.fillColor = Bool.random() ? Palette.hullAlt : Palette.foam
+            node.glowWidth = 2
+            node.zRotation = CGFloat.random(in: 0 ... .pi)
+            drift = CGVector(dx: -CGFloat.random(in: 10...40), dy: CGFloat.random(in: -40...10)); life = 1.0
+        }
+        if trail != .gold { node.strokeColor = .clear }
+        node.position = at
+        node.zPosition = 9
+        node.setScale(blocker.xScale)
+        addChild(node)
+        node.run(.sequence([
+            .group([.move(by: drift, duration: life), .fadeOut(withDuration: life), .scale(by: 0.5, duration: life)]),
+            .removeFromParent(),
+        ]))
+    }
 
     private func shoutMidflight() {
         let bubble = Bubble(text: who.randomQuote(),
@@ -397,7 +490,8 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
             maxComboCount: combo.best,
             maxComboTier: combo.bestTier,
             maxEgoPercent: ego.peak,
-            shipsFreed: shipsFreed
+            shipsFreed: shipsFreed,
+            bubblesPopped: bubblesPopped
         )
         onFinished?(result)
     }
@@ -407,7 +501,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private func maybeSpawnBubble(now: TimeInterval) {
         guard phase.bubbleInterval.isFinite else { return }
         guard now >= nextBubble else { return }
-        nextBubble = now + phase.bubbleInterval * who.twist.bubbleInterval * Double.random(in: 0.8...1.2)
+        nextBubble = now + phase.bubbleInterval * twist.bubbleInterval * Double.random(in: 0.8...1.2)
 
         // Spawned at the edge of him and thrown clear, not from his middle.
         // Starting at 0.6 of the radius put the balloon on top of his face for
@@ -422,13 +516,13 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         let drift = CGVector(dx: side * CGFloat.random(in: 60...170),
                              dy: up ? CGFloat.random(in: 130...210) : CGFloat.random(in: -210 ... -130))
         let bubble = Bubble(text: who.randomQuote(), from: start, drift: drift,
-                            returning: 2.6 * who.twist.bubbleReturn)
+                            returning: 2.6 * twist.bubbleReturn)
         // Clear of the HUD at the top, and inside the screen everywhere else.
         bubble.playBounds = CGRect(x: 8, y: 8, width: size.width - 16, height: size.height - 150)
         bubble.homeProvider = { [weak self] in self?.blocker.position ?? .zero }
         bubble.onLanded = { [weak self] in
             guard let self else { return }
-            self.ego.absorb(scale: self.who.twist.egoGain)
+            self.ego.absorb(scale: self.twist.egoGain)
             self.blocker.setExpression(.smug)
             Haptics.inflate()
             Audio.shared.inflate()
@@ -436,7 +530,8 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         bubble.onPopped = { [weak self] in
             guard let self else { return }
-            self.ego.pop(scale: self.who.twist.popLoss)
+            if !self.isLaunched { self.bubblesPopped += 1 }
+            self.ego.pop(scale: self.twist.popLoss)
             Haptics.pop()
             Audio.shared.pop()
         }

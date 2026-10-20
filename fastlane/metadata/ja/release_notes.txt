@@ -1,0 +1,13 @@
+これまでで最大のアップデートです。
+
+- Club Season:すべての航路で毎月10個の新しい目標。Full SeasonのメダルとSeason Starsのトレイル付き
+- Daily Strait:毎日新しい、全員共通のチャレンジ。連続記録を伸ばせて、夜のリマインダーも選べます
+- Game Center:Longest Launch、Fastest Clear、デイリーのリーダーボードと、14個の達成項目
+- ホーム画面とロック画面のウィジェット、コントロールセンターのボタン、Daily StraitのSiriショートカット
+- 14種類のメダル、メダルで解放されるトレイル、ほら吹きごとの記録が見られるロッカー
+- 飛びをPostcardsにしてシェア
+- 最初の数回は、遊びながら操作を案内します
+- Strait Club(任意のサブスクリプション):ほら吹き4人すべて、シーズンの全目標、Daily RetriesとPostcardsが無制限、毎月Streak Shieldsを3つ、すべてのトレイルとアイコン
+- 修正:クリア済みのDaily Straitをもう一度遊んでも、再挑戦を消費しなくなりました
+
+ベストの飛距離、ベストタイム、Blowhard Packはそのまま引き継がれます。

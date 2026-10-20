@@ -1,0 +1,13 @@
+迄今最大的一次更新。
+
+- Club Season:每月在所有航道推出十个新目标,还有 Full Season 奖牌和 Season Stars 尾迹
+- Daily Strait:每天一个所有人都一样的新挑战,可以积累连胜,还有可选的晚间提醒
+- Game Center:Longest Launch、Fastest Clear 和每日排行榜,外加 14 项成就
+- 主屏幕和锁定屏幕小组件、控制中心按钮,以及 Daily Strait 的 Siri 快捷指令
+- 14 枚奖牌、随奖牌解锁的发射尾迹,以及记录每个吹牛大王成绩的储物柜
+- 把你的发射做成 Postcards 分享
+- 前几局会边玩边教你怎么玩
+- Strait Club(可选订阅):全部四个吹牛大王、整个赛季、无限 Daily Retries 和 Postcards、每月三个 Streak Shields、全部尾迹和图标
+- 修复:重玩已通过的 Daily Strait 不再消耗重试次数
+
+你的最远发射、最佳时间和 Blowhard Pack 都会保留。

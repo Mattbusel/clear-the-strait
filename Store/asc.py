@@ -70,9 +70,14 @@ def call(method: str, path: str, body=None, params=None, quiet=False):
         "Authorization": f"Bearer {token()}",
         "Content-Type": "application/json",
     }
-    response = requests.request(
-        method, url, headers=headers, json=body, params=params, timeout=60
-    )
+    # The key is shared by several jobs at once; a 429 means wait, not fail.
+    for attempt in range(8):
+        response = requests.request(
+            method, url, headers=headers, json=body, params=params, timeout=60
+        )
+        if response.status_code != 429:
+            break
+        time.sleep(15 * (attempt + 1))
     if response.status_code >= 400:
         if not quiet:
             print(f"  ! {method} {path} -> {response.status_code}")

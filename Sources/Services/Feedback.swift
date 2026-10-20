@@ -153,13 +153,23 @@ enum Scores {
     private static let bestTimeKey = "best.clear.seconds"
 
     static var bestLaunch: Double {
-        get { UserDefaults.standard.double(forKey: bestLaunchKey) }
+        get {
+            #if DEBUG
+            if ProcessInfo.processInfo.arguments.contains("-shot") { return 148_900 }
+            #endif
+            return UserDefaults.standard.double(forKey: bestLaunchKey)
+        }
         set { UserDefaults.standard.set(newValue, forKey: bestLaunchKey) }
     }
 
     /// Zero means "never cleared", so the title screen can stay quiet.
     static var bestClear: Double {
-        get { UserDefaults.standard.double(forKey: bestTimeKey) }
+        get {
+            #if DEBUG
+            if ProcessInfo.processInfo.arguments.contains("-shot") { return 41.37 }
+            #endif
+            return UserDefaults.standard.double(forKey: bestTimeKey)
+        }
         set { UserDefaults.standard.set(newValue, forKey: bestTimeKey) }
     }
 

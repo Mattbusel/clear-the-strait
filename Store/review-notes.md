@@ -5,67 +5,30 @@ supplied programmatically by `Store/listing.py review-details`.
 
 ---
 
-No account, login or network connection is required. Tap PLAY and the game
-starts immediately.
+No account, login or network connection is needed to play. Tap PLAY and the game starts.
 
-HOW TO PLAY: choose a character in the row above PLAY (the first is free),
-then tap PLAY. Tap the left side of the character to shove him right, the right
-side to shove him left. Shoving in time with the way he is already rocking
-builds a combo. Speech bubbles drift away from him and return; tapping a bubble
-pops it. When enough momentum accumulates he is launched out of the channel and
-the result screen appears. A round lasts about 45 to 120 seconds.
+HOW TO PLAY: tap the left side of the character to shove him right, the right side to shove him left. Shoving in time with his rocking builds a combo. Speech bubbles drift away and come back; tap one to pop it. With enough momentum he launches and the result screen appears. A round lasts 45 to 120 seconds and always ends (after 150 s he comes free by himself).
 
-ABOUT THE CONTENT
+NEW IN 1.2 (title screen, top to bottom)
+- CLUB (crown, top left): the Strait Club subscription screen.
+- Trophy (top right): Game Center leaderboards (Longest Launch, Fastest Clear, Daily Strait). Medals report as Game Center achievements.
+- Medal pill (top right): the Locker with medals, records, trails, shop, and Settings (daily reminder toggle, Game Center achievements).
+- DAILY STRAIT card: one fixed challenge per day computed from the date; one try a day, retries optional.
+- SEASON card: this month's ten Club Season goals. Goals 1 to 3 are open to everyone; 4 to 10 need the Strait Club.
+- Widgets: Daily Strait and Daily Streak (Home and Lock Screen), a Control Center control and a Siri shortcut ("Play the Daily Strait"), all opening the app on the daily.
+- The daily reminder is a local notification, offered only after a Daily Strait win or in Locker > Settings. Never asked on launch.
 
-This is an original satirical cartoon in the tradition of the editorial
-cartoon: an exaggerated, extremely round caricature of a generic self-important
-public figure who has become stuck in a fictional waterway.
+STRAIT CLUB (auto-renewable subscription, group "Strait Club")
+- Strait Club Monthly $2.99 per month; Strait Club Yearly $14.99 per year with a one-week free trial for new subscribers.
+- To test: tap CLUB on the title screen. The screen lists every benefit, both plans with price and period, the trial terms, auto-renew terms, Terms of Use (Apple standard EULA) and Privacy Policy links, Restore Purchases and Redeem Code. After subscribing it shows the plan, renewal date and Manage Subscription.
+- While subscribed: the three extra characters, all ten season goals, unlimited Daily Strait retries and postcards, three Streak Shields a month, every trail and app icon. Joining or leaving never removes anything bought.
 
-Specifically, and by design:
+OTHER IN-APP PURCHASES (StoreKit 2; Locker > Shop lists all with prices and Restore Purchases)
+- 3 Daily Retries, 2 Streak Shields, 3 Postcards: consumables, $0.99 each.
+- Trail Pack, Icon Pack: non-consumables, $0.99 each.
+- The Blowhard Pack: existing non-consumable, unchanged.
+No randomized rewards or loot boxes; every item says exactly what it gives.
 
-- The character is not named anywhere in the app, its metadata, its code or its
-  marketing. He is a comic archetype, not a portrait of a specific individual.
-- The setting is fictional and unnamed. It is referred to only as "the channel"
-  or "the strait". No real country, city, waterway, border, map or geographic
-  feature appears or is referenced.
-- No real conflict, war, military operation, political event, election or
-  organisation appears or is referenced.
-- No flags, national symbols, insignia or military vessels appear. The only
-  vessels are generic toy container ships.
-- Every line of dialogue is written for this game. Nothing is a quotation of
-  anything any real person has said, and the app never presents any line as a
-  real quotation.
-- There is no violence, injury, blood, weaponry or peril of any kind. The
-  entire interaction is pushing an oversized cartoon ball out of the way, in
-  the manner of a beach ball. The character is unharmed throughout and is
-  cheerful about the whole thing.
+ABOUT THE CONTENT: an original satirical cartoon of generic, unnamed, round self-important figures stuck in fictional waterways. No real person, country, place or event appears or is referenced; no flags or military vessels; every line is written for this game and none is presented as a real quotation. No violence: the whole interaction is pushing a cartoon ball out of the way.
 
-The humour is physical and absurd: a very round man is stuck, he is pleased
-with himself about it, and being pleased with himself makes him harder to move.
-
-AGE RATING: submitted as 4+. There is no violence, no profanity, no suggestive
-content, no gambling, no user-generated content, no chat, no web access and no
-advertising.
-
-PRIVACY: no data of any kind is collected. There is no analytics, no crash
-reporting, no advertising identifier and no server belonging to this app. Two
-personal-best numbers, the chosen character and whether the pack is unlocked
-are stored on the device in UserDefaults, declared in the privacy manifest
-under CA92.1. There is no Game Center in this version.
-
-MONETISATION (new in 1.1): the game is now free, with no advertising. One
-optional non-consumable in-app purchase, "The Blowhard Pack"
-(com.mattbusel.clearthestrait.pack1), adds three more playable characters: The
-Windbag, The Tycoon and The Mayor. Each is the same generic unnamed archetype
-treatment as the original (no real person is portrayed), in his own fictional
-channel with a small rule twist.
-
-HOW TO TEST THE PURCHASE: on the title screen tap GET THE BLOWHARD PACK, or tap
-any character with a lock in the row above PLAY. The pack screen shows the
-three characters, UNLOCK (buys the pack) and RESTORE PURCHASES. After buying,
-the three characters become selectable; pick one and tap PLAY. The base game is
-fully playable without buying anything.
-
-People who bought the app when it was paid (builds 1 and 2) receive the pack
-automatically, checked with StoreKit's AppTransaction. This only applies in the
-production App Store, so in the review sandbox the purchase is shown normally.
+PRIVACY: no data is collected. No analytics, crash reporting, advertising identifier or server. Progress is stored on the device (UserDefaults, privacy manifest CA92.1) and in an app group shared with the widgets. Game Center is Apple's own service and is optional.

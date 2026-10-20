@@ -1,0 +1,13 @@
+역대 가장 큰 업데이트입니다.
+
+- Club Season: 모든 해협에 걸쳐 매달 새로운 목표 10개, Full Season 메달과 Season Stars 트레일
+- Daily Strait: 매일 새로운 도전, 모두에게 같은 조건, 쌓아 가는 연속 기록과 선택형 저녁 알림
+- Game Center: Longest Launch, Fastest Clear, 데일리 리더보드, 그리고 도전 과제 14개
+- 홈 화면 및 잠금 화면 위젯, 제어 센터 버튼, Daily Strait용 Siri 단축어
+- 메달 14개, 메달로 열리는 발사 트레일, 허풍쟁이별 기록이 담긴 로커
+- 발사 장면을 Postcards로 공유
+- 처음 몇 판은 플레이하면서 방법을 알려 줍니다
+- Strait Club(선택형 구독): 허풍쟁이 4명 모두, 시즌 전체, Daily Retries와 Postcards 무제한, 매달 Streak Shields 3개, 모든 트레일과 아이콘
+- 수정: 이미 깬 Daily Strait를 다시 플레이해도 재도전 횟수가 차감되지 않습니다
+
+최고 발사 기록, 최고 시간, Blowhard Pack은 그대로 유지됩니다.

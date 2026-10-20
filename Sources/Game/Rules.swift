@@ -431,6 +431,8 @@ struct RoundResult: Equatable {
     var maxComboTier: ComboTier
     var maxEgoPercent: Double
     var shipsFreed: Int
+    /// Bubbles popped before he came loose. Added in 1.2 for the daily goals and medals.
+    var bubblesPopped: Int = 0
 
     var shareText: String {
         """

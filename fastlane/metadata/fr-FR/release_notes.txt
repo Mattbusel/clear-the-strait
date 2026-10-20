@@ -1,0 +1,13 @@
+La plus grosse mise à jour à ce jour.
+
+- La Club Season : dix nouveaux objectifs chaque mois dans tous les chenaux, avec la médaille Full Season et la traînée Season Stars
+- Le Daily Strait : un nouveau défi chaque jour, le même pour tous, avec une série à construire et un rappel facultatif le soir
+- Game Center : Longest Launch, Fastest Clear et un classement du jour, plus 14 succès
+- Des widgets pour l'écran d'accueil et l'écran verrouillé, un bouton dans le centre de contrôle et un raccourci Siri pour le Daily Strait
+- 14 médailles, des traînées qui se débloquent avec elles, et le vestiaire avec les records de chaque fanfaron
+- Des Postcards de vos lancers à partager
+- Vos premières parties vous montrent comment jouer au fur et à mesure
+- Le Strait Club, un abonnement facultatif : les quatre fanfarons, la saison complète, Daily Retries et Postcards illimités, trois Streak Shields par mois, toutes les traînées et toutes les icônes
+- Corrigé : rejouer un Daily Strait déjà réussi ne consomme plus de nouvel essai
+
+Votre meilleur lancer, votre meilleur temps et le Blowhard Pack sont conservés.
